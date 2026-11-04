@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mappatura delle competenze</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16213E;
+  --ink-soft:#56607E;
+  --ink-faint:#8A92AB;
+  --bg:#F1F4F3;
+  --panel:#FFFFFF;
+  --line:#DFE5E3;
+  --teal:#2C7A6B;
+  --teal-deep:#1D5A4E;
+  --teal-soft:#DCEEE9;
+  --step-off:#E2E8E6;
+  --none:#5A6278;
+  --amber:#B8691F;
+  --amber-soft:#F7EADB;
+  --font:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; scroll-padding-top:84px; }
+body{
+  margin:0; background:var(--bg); color:var(--ink); font-family:var(--font);
+  font-size:15.5px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- Testata ---------- */
+.hero{ background:var(--ink); color:#fff; padding:46px 20px 54px; }
+.hero-inner{ max-width:820px; margin:0 auto; }
+.hero h1{
+  font-size:clamp(27px,4.2vw,38px); font-weight:600; letter-spacing:-0.018em;
+  line-height:1.12; margin:0 0 14px;
+}
+.hero p{ margin:0; color:#BCC4DE; max-width:60ch; font-size:16px; }
+.hero-meta{ margin-top:20px; display:flex; gap:8px; flex-wrap:wrap; }
+.hero-meta span{
+  font-size:13px; color:#DCE1F0; background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.14); padding:4px 12px; border-radius:20px;
+}
+
+/* ---------- Barra di avanzamento ---------- */
+.progress{
+  position:sticky; top:0; z-index:20; background:rgba(241,244,243,0.93);
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+}
+.progress-inner{ max-width:820px; margin:0 auto; padding:13px 20px; display:flex; align-items:center; gap:16px; }
+.progress-track{ flex:1; height:6px; background:var(--step-off); border-radius:6px; overflow:hidden; }
+.progress-fill{ height:100%; width:0; background:var(--teal); border-radius:6px; transition:width .3s ease; }
+.progress-text{ font-size:13.5px; color:var(--ink-soft); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.progress-text b{ color:var(--ink); font-weight:600; }
+
+/* ---------- Blocchi ---------- */
+main{ max-width:820px; margin:0 auto; padding:28px 20px 90px; }
+.block{
+  background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:24px 26px 26px; margin-bottom:18px;
+}
+.block > h2{ font-size:19px; font-weight:600; margin:0 0 4px; letter-spacing:-0.008em; }
+.block > .hint{ font-size:14.5px; color:var(--ink-soft); margin:0 0 20px; max-width:62ch; }
+
+/* ---------- Campi anagrafici ---------- */
+.field{ margin-bottom:22px; }
+.field:last-child{ margin-bottom:0; }
+.field-label{ display:block; font-weight:600; font-size:14.5px; margin-bottom:9px; }
+.field-label small{ font-weight:400; color:var(--ink-faint); font-size:13.5px; }
+input[type=text], input[type=number]{
+  width:100%; max-width:420px; font:inherit; padding:11px 14px; border:1px solid var(--line);
+  border-radius:8px; background:#fff; color:var(--ink); transition:border-color .15s, box-shadow .15s;
+}
+input[type=number]{ max-width:150px; }
+input[type=text]:focus, input[type=number]:focus{ outline:none; border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-soft); }
+
+.choices{ display:flex; flex-wrap:wrap; gap:8px; }
+.choices input{ position:absolute; opacity:0; pointer-events:none; }
+.choices label{
+  padding:9px 17px; border:1px solid var(--line); border-radius:22px; cursor:pointer;
+  font-size:14.5px; background:#fff; transition:background .15s, border-color .15s, color .15s;
+}
+.choices label:hover{ border-color:var(--teal); }
+.choices input:checked + label{ background:var(--ink); border-color:var(--ink); color:#fff; }
+.choices input:focus-visible + label{ border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-soft); }
+
+.field.missing .field-label{ color:var(--amber); }
+.field.missing input[type=text], .field.missing input[type=number]{ border-color:var(--amber); }
+.field.missing .choices label{ border-color:#E7C9A6; }
+
+/* ---------- Legenda della scala ---------- */
+.scale{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; }
+.scale-item{ display:flex; flex-direction:column; gap:8px; }
+.scale-item .mini{ height:30px; display:flex; align-items:flex-end; gap:3px; }
+.scale-item .mini i{ display:block; width:9px; border-radius:2px; background:var(--step-off); }
+.scale-item .mini i:nth-child(1){ height:9px; }
+.scale-item .mini i:nth-child(2){ height:15px; }
+.scale-item .mini i:nth-child(3){ height:22px; }
+.scale-item .mini i:nth-child(4){ height:30px; }
+.scale-item .mini i.on{ background:var(--teal); }
+.scale-item .mini .dash{ width:30px; height:9px; border-radius:2px; background:var(--none); }
+.scale-item strong{ font-size:14px; font-weight:600; line-height:1.3; }
+.scale-item strong span{ color:var(--ink-faint); font-weight:500; margin-right:4px; }
+.scale-item p{ margin:0; font-size:13px; color:var(--ink-soft); line-height:1.45; }
+
+/* ---------- Aree e competenze ---------- */
+.area-head{ display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+.area-head .swatch{ width:12px; height:12px; border-radius:3px; background:var(--c); flex-shrink:0; }
+.area-head h2{ font-size:18px; font-weight:600; margin:0; flex:1; letter-spacing:-0.006em; }
+.area-count{
+  font-size:12.5px; color:var(--ink-soft); background:#F2F4F3; padding:3px 10px;
+  border-radius:20px; white-space:nowrap; font-variant-numeric:tabular-nums; transition:background .2s, color .2s;
+}
+.area.complete .area-count{ background:var(--teal-soft); color:var(--teal-deep); font-weight:600; }
+.block.area{ border-top:3px solid var(--c); }
+
+.comp{
+  display:grid; grid-template-columns:1fr auto; gap:18px; align-items:center;
+  padding:16px 0; border-bottom:1px solid var(--line);
+}
+.comp:last-child{ border-bottom:none; padding-bottom:2px; }
+.comp-name{ font-size:15px; font-weight:500; transition:color .15s; }
+.comp.missing .comp-name{ color:var(--amber); }
+.comp.missing .comp-name::after{ content:'  da valutare'; font-size:12.5px; font-weight:400; }
+
+.rate{ display:flex; align-items:flex-end; gap:12px; }
+.rate input{ position:absolute; opacity:0; pointer-events:none; }
+
+.rate .none{
+  height:40px; padding:0 13px; display:flex; align-items:center; border:1px solid var(--line);
+  border-radius:8px; font-size:13px; color:var(--ink-soft); cursor:pointer; background:#fff;
+  white-space:nowrap; transition:background .15s, color .15s, border-color .15s;
+}
+.rate .none:hover{ border-color:var(--none); }
+.rate[data-v="0"] .none{ background:var(--none); border-color:var(--none); color:#fff; }
+
+.stairs{ display:flex; align-items:flex-end; gap:4px; }
+.step{
+  width:40px; height:58px; display:flex; flex-direction:column; justify-content:flex-end;
+  align-items:center; gap:4px; cursor:pointer; border-radius:6px;
+}
+.step i{ display:block; width:100%; border-radius:4px; background:var(--step-off); transition:background .15s; }
+.step[data-l="1"] i{ height:14px; }
+.step[data-l="2"] i{ height:22px; }
+.step[data-l="3"] i{ height:31px; }
+.step[data-l="4"] i{ height:40px; }
+.step span{ font-size:11.5px; color:var(--ink-faint); font-weight:600; line-height:1; font-variant-numeric:tabular-nums; }
+.step:hover i{ background:#C9D3D0; }
+
+/* Riempimento a scala: il livello scelto e quelli sotto si colorano */
+.rate[data-v="1"] .step[data-l="1"] i,
+.rate[data-v="2"] .step:is([data-l="1"],[data-l="2"]) i,
+.rate[data-v="3"] .step:is([data-l="1"],[data-l="2"],[data-l="3"]) i,
+.rate[data-v="4"] .step i{ background:var(--teal); }
+.rate[data-v="1"] .step[data-l="1"] i,
+.rate[data-v="2"] .step[data-l="2"] i,
+.rate[data-v="3"] .step[data-l="3"] i,
+.rate[data-v="4"] .step[data-l="4"] i{ background:var(--teal-deep); }
+.rate[data-v="1"] .step[data-l="1"] span,
+.rate[data-v="2"] .step[data-l="2"] span,
+.rate[data-v="3"] .step[data-l="3"] span,
+.rate[data-v="4"] .step[data-l="4"] span{ color:var(--teal-deep); }
+
+.rate input:focus-visible + label{ outline:2px solid var(--teal); outline-offset:3px; }
+
+.rate-caption{
+  width:96px; height:40px; display:flex; align-items:center; font-size:13px;
+  color:var(--ink-faint); line-height:1.25;
+}
+.rate[data-v] .rate-caption{ color:var(--ink); font-weight:600; }
+.rate[data-v="0"] .rate-caption{ color:var(--ink-soft); }
+
+/* ---------- Invio ---------- */
+.submit-block{ display:flex; flex-direction:column; align-items:flex-start; gap:14px; }
+.submit-block p{ margin:0; font-size:14.5px; color:var(--ink-soft); }
+.btn{
+  font:inherit; font-size:15.5px; font-weight:600; color:#fff; background:var(--teal);
+  border:none; padding:13px 26px; border-radius:9px; cursor:pointer; transition:background .15s;
+}
+.btn:hover{ background:var(--teal-deep); }
+.btn:focus-visible{ outline:none; box-shadow:0 0 0 4px var(--teal-soft); }
+.btn:disabled{ opacity:.6; cursor:wait; }
+.alert{
+  width:100%; font-size:14px; background:var(--amber-soft); color:#7A4512;
+  border-left:3px solid var(--amber); padding:11px 14px; border-radius:6px;
+}
+.alert[hidden]{ display:none; }
+
+/* Campo trappola per i bot: invisibile alle persone */
+.hp{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+
+/* ---------- Conferma ---------- */
+.done{ text-align:center; padding:56px 26px; }
+.done svg{ width:56px; height:56px; margin-bottom:14px; }
+.done h2{ font-size:24px; margin:0 0 8px; }
+.done p{ color:var(--ink-soft); margin:0 auto; max-width:46ch; }
+
+/* ---------- Mobile ---------- */
+@media (max-width:680px){
+  .block{ padding:20px 18px 22px; }
+  .scale{ grid-template-columns:1fr 1fr; }
+  .comp{ grid-template-columns:1fr; gap:12px; }
+  .rate{ gap:10px; }
+  .stairs{ flex:1; }
+  .step{ flex:1; width:auto; }
+  .rate-caption{ width:84px; }
+}
+@media (max-width:400px){
+  .rate .none{ padding:0 9px; font-size:12.5px; }
+  .rate-caption{ width:70px; font-size:12.5px; }
+}
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior:auto; }
+  *{ transition:none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <h1>Mappatura delle competenze del team</h1>
+    <p>Indica il tuo livello su ciascuna competenza. Le risposte servono a capire su cosa il team è già forte e dove conviene investire, sia nello staffing sia nella formazione.</p>
+    <div class="hero-meta">
+      <span>Circa 6 minuti</span>
+      <span id="metaCount">36 competenze in 10 aree</span>
+    </div>
+  </div>
+</header>
+
+<div class="progress" id="progressBar">
+  <div class="progress-inner">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText"><b>0</b> di 36 valutate</div>
+  </div>
+</div>
+
+<main>
+  <form id="form" novalidate>
+
+    <section class="block">
+      <h2>Chi sei</h2>
+      <p class="hint">Servono per leggere le competenze in relazione al ruolo e all'esperienza.</p>
+
+      <div class="field" data-field="nome">
+        <label class="field-label" for="nome">Nome e cognome</label>
+        <input type="text" id="nome" name="nome" autocomplete="name">
+      </div>
+
+      <div class="field" data-field="ruolo">
+        <span class="field-label">Ruolo attuale</span>
+        <div class="choices" id="ruoloChoices"></div>
+      </div>
+
+      <div class="field" data-field="anni">
+        <label class="field-label" for="anni">Anni di esperienza professionale <small>in totale, anche fuori dall'azienda</small></label>
+        <input type="number" id="anni" name="anni" min="0" max="50" step="1" inputmode="numeric">
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>Come valutarti</h2>
+      <p class="hint">Pensa a quello che hai fatto davvero sui progetti, non a quello che conosci in teoria. Se una competenza non ti riguarda, scegli "Nessuna".</p>
+      <div class="scale" id="scaleLegend"></div>
+    </section>
+
+    <div id="areas"></div>
+
+    <div class="hp" aria-hidden="true">
+      <label for="website">Non compilare questo campo</label>
+      <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+    </div>
+
+    <section class="block submit-block">
+      <p>Prima di inviare, controlla di aver valutato tutte le competenze.</p>
+      <button type="submit" class="btn" id="submitBtn">Invia le risposte</button>
+      <div class="alert" id="alert" role="alert" hidden></div>
+    </section>
+  </form>
+
+  <section class="block done" id="done" hidden>
+    <svg viewBox="0 0 56 56" aria-hidden="true">
+      <circle cx="28" cy="28" r="27" fill="#DCEEE9"/>
+      <path d="M17 29l7 7 15-16" fill="none" stroke="#1D5A4E" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h2>Risposte inviate</h2>
+    <p id="doneText">Grazie, le tue valutazioni sono state registrate.</p>
+  </section>
+</main>
+
+<script>
+/* ============================================================
+   CONFIGURAZIONE
+   Incolla qui l'URL della web app Apps Script (quello che finisce in /exec)
+   ============================================================ */
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyj4stEfmE92FWo4Qz3lqKePJ2s9qNSODtge-cR41zIpI8uPqR4duMNkHRYKV4nY8eO/exec';
+
+const RUOLI = ['Stagista','Analyst','Consultant','Senior Consultant','Manager'];
+
+// Scala 0-4. Modifica nomi e descrizioni se nel questionario usate formulazioni diverse.
+const LIVELLI = [
+  { v:0, nome:'Nessuna esperienza', breve:'Nessuna', desc:'Non ho mai lavorato su questo tema.' },
+  { v:1, nome:'Base',       breve:'Base',       desc:'Conosco i concetti, ho seguito il tema solo marginalmente.' },
+  { v:2, nome:'Elementare', breve:'Elementare', desc:'Ho svolto attività semplici con il supporto di colleghi.' },
+  { v:3, nome:'Autonomo',   breve:'Autonomo',   desc:'Svolgo le attività in autonomia su progetti reali.' },
+  { v:4, nome:'Avanzato',   breve:'Avanzato',   desc:'Sono un riferimento: guido altri e gestisco casi complessi.' }
+];
+
+// I codici devono coincidere con le intestazioni del foglio "Risposte".
+const AREE = [
+  { area:'Project Management/PMO', items:[
+    ['comp_PM_pianificazione','Pianificazione e gestione di attività progettuali'],
+    ['comp_PM_budget','Analisi e monitoraggio di budget e costi'],
+    ['comp_PM_risorse','Gestione e allocazione delle risorse'],
+    ['comp_PM_governance_it','Governance di progetti tecnici e di sviluppo IT'],
+    ['comp_PM_post_contrattuale','Gestione post-contrattuale, coordinamento stakeholder e reporting']
+  ]},
+  { area:'Analisi dei processi e dei Modelli Operativi', items:[
+    ['comp_PRO_requisiti','Raccolta di requisiti e analisi funzionale'],
+    ['comp_PRO_as_is_gap','Mappatura di processi As-Is e Gap Analysis'],
+    ['comp_PRO_to_be','Disegno To-Be di processi e di modelli operativi']
+  ]},
+  { area:'Data & Analytics', items:[
+    ['comp_DA_data_quality','Data preparation & Data Quality'],
+    ['comp_DA_kpi','Analisi dei dati e definizione KPI'],
+    ['comp_DA_dashboard','Visualizzazione dei dati e creazione dashboard'],
+    ['comp_DA_forecasting','Forecasting e modelli econometrici']
+  ]},
+  { area:'Data Governance', items:[
+    ['comp_DG_ruoli_dato','Definizione di ruoli e responsabilità sul dato'],
+    ['comp_DG_metadati','Catalogazione e gestione dei metadati']
+  ]},
+  { area:'Change Management', items:[
+    ['comp_CM_strategia','Definizione della strategia di change management'],
+    ['comp_CM_implementazione','Implementazione della strategia di change management']
+  ]},
+  { area:'Strategia e Analisi di Mercato', items:[
+    ['comp_STR_pianificazione','Pianificazione strategica'],
+    ['comp_STR_benchmarking','Benchmarking e valutazioni economiche'],
+    ['comp_STR_ricerca_mercato','Ricerca di mercato e analisi qualitative']
+  ]},
+  { area:"Procurement e Gestione gare d'appalto", items:[
+    ['comp_PRC_strategia_gara','Definizione della strategia di gara'],
+    ['comp_PRC_doc_gara_sa','Supporto alla redazione di documentazione di gara (per stazioni appaltanti)'],
+    ['comp_PRC_pre_contrattuale','Gestione delle fasi pre-contrattuali con i fornitori'],
+    ['comp_PRC_offerte_tecniche','Analisi della documentazione di gara e redazione di offerte tecniche']
+  ]},
+  { area:'GenAI e Sviluppo di soluzioni digitali', items:[
+    ['comp_AI_genai_tools','Utilizzo degli strumenti di AI generativa'],
+    ['comp_AI_agenti','Progettazione e sviluppo di agenti AI'],
+    ['comp_AI_sviluppo_sw','Programmazione e sviluppo software']
+  ]},
+  { area:'Cloud e Infrastrutture', items:[
+    ['comp_CLD_progettazione','Progettazione di infrastrutture cloud'],
+    ['comp_CLD_architetture','Analisi di architetture cloud'],
+    ['comp_CLD_migrazioni','Analisi e gestione di migrazioni al cloud']
+  ]},
+  { area:'Comunicazione e visual identity', items:[
+    ['comp_COM_eventi','Organizzazione di eventi'],
+    ['comp_COM_ux_ui','Progettazione UX/UI di siti o portali web'],
+    ['comp_COM_modifiche_web','Implementazione di modifiche a siti o portali web'],
+    ['comp_COM_brand_identity','Definizione della brand identity'],
+    ['comp_COM_strategia_editoriale','Definizione della strategia di comunicazione e piano editoriale'],
+    ['comp_COM_contenuti_editoriali','Creazione di contenuti editoriali'],
+    ['comp_COM_gestione_web','Pubblicazione e gestione di contenuti web']
+  ]}
+];
+
+const COLORI_AREE = ['#2C7A6B','#C77D2E','#5B6EE1','#B0432B','#7A9E7E','#D6A544','#4A5578','#8E5B9C','#3C8DAD','#A85C32'];
+
+/* ============================================================
+   COSTRUZIONE DEL FORM
+   ============================================================ */
+const form = document.getElementById('form');
+const ALL_CODES = AREE.flatMap(a => a.items.map(i => i[0]));
+const TOTAL = ALL_CODES.length;
+let dirty = false;
+let submitted = false;
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+document.getElementById('metaCount').textContent = `${TOTAL} competenze in ${AREE.length} aree`;
+
+document.getElementById('ruoloChoices').innerHTML = RUOLI.map((r,i) => `
+  <input type="radio" id="ruolo_${i}" name="ruolo" value="${esc(r)}">
+  <label for="ruolo_${i}">${esc(r)}</label>`).join('');
+
+document.getElementById('scaleLegend').innerHTML = LIVELLI.map(l => `
+  <div class="scale-item">
+    <div class="mini">${l.v === 0
+      ? '<span class="dash"></span>'
+      : [1,2,3,4].map(n => `<i class="${n <= l.v ? 'on' : ''}"></i>`).join('')}</div>
+    <strong><span>${l.v}</span>${esc(l.nome)}</strong>
+    <p>${esc(l.desc)}</p>
+  </div>`).join('');
+
+document.getElementById('areas').innerHTML = AREE.map((a, ai) => `
+  <section class="block area" data-area="${ai}" style="--c:${COLORI_AREE[ai % COLORI_AREE.length]}">
+    <div class="area-head">
+      <span class="swatch"></span>
+      <h2>${esc(a.area)}</h2>
+      <span class="area-count" id="areaCount${ai}">0 di ${a.items.length}</span>
+    </div>
+    ${a.items.map(([code, label]) => `
+      <div class="comp" data-code="${code}">
+        <div class="comp-name" id="lbl_${code}">${esc(label)}</div>
+        <div class="rate" role="radiogroup" aria-labelledby="lbl_${code}">
+          <input type="radio" id="${code}_0" name="${code}" value="0">
+          <label for="${code}_0" class="none" title="0 – ${esc(LIVELLI[0].nome)}">Nessuna</label>
+          <div class="stairs">
+            ${LIVELLI.slice(1).map(l => `
+              <input type="radio" id="${code}_${l.v}" name="${code}" value="${l.v}">
+              <label for="${code}_${l.v}" class="step" data-l="${l.v}" title="${l.v} – ${esc(l.nome)}">
+                <i></i><span>${l.v}</span>
+              </label>`).join('')}
+          </div>
+          <span class="rate-caption">Da valutare</span>
+        </div>
+      </div>`).join('')}
+  </section>`).join('');
+
+/* ============================================================
+   AVANZAMENTO
+   ============================================================ */
+function isAnswered(code){ return form.elements[code].value !== ''; }
+
+function updateProgress(){
+  const done = ALL_CODES.filter(isAnswered).length;
+  document.getElementById('progressFill').style.width = (done / TOTAL * 100) + '%';
+  document.getElementById('progressText').innerHTML = `<b>${done}</b> di ${TOTAL} valutate`;
+  AREE.forEach((a, ai) => {
+    const n = a.items.filter(i => isAnswered(i[0])).length;
+    const el = document.getElementById('areaCount' + ai);
+    el.textContent = n === a.items.length ? 'Completata' : `${n} di ${a.items.length}`;
+    el.closest('.area').classList.toggle('complete', n === a.items.length);
+  });
+}
+
+form.addEventListener('change', e => {
+  dirty = true;
+  const t = e.target;
+  if(t.name && t.name.startsWith('comp_')){
+    const rate = t.closest('.rate');
+    rate.dataset.v = t.value;
+    rate.querySelector('.rate-caption').textContent = LIVELLI[Number(t.value)].breve;
+    t.closest('.comp').classList.remove('missing');
+    updateProgress();
+  }else{
+    const field = t.closest('.field');
+    if(field) field.classList.remove('missing');
+  }
+});
+form.addEventListener('input', e => {
+  const field = e.target.closest('.field');
+  if(field && e.target.value.trim() !== '') field.classList.remove('missing');
+});
+
+window.addEventListener('beforeunload', e => {
+  if(dirty && !submitted){ e.preventDefault(); e.returnValue = ''; }
+});
+
+/* ============================================================
+   INVIO
+   ============================================================ */
+const alertEl = document.getElementById('alert');
+const submitBtn = document.getElementById('submitBtn');
+
+function showAlert(msg){ alertEl.textContent = msg; alertEl.hidden = false; }
+
+form.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  alertEl.hidden = true;
+
+  const nome = form.elements.nome.value.trim();
+  const ruolo = form.elements.ruolo.value;
+  const anniRaw = form.elements.anni.value.trim();
+  const anni = anniRaw === '' ? NaN : Number(anniRaw);
+
+  const missingFields = [];
+  if(!nome) missingFields.push('nome');
+  if(!ruolo) missingFields.push('ruolo');
+  if(!Number.isInteger(anni) || anni < 0 || anni > 50) missingFields.push('anni');
+  document.querySelectorAll('.field').forEach(f =>
+    f.classList.toggle('missing', missingFields.includes(f.dataset.field)));
+
+  const missingComps = ALL_CODES.filter(c => !isAnswered(c));
+  document.querySelectorAll('.comp').forEach(row =>
+    row.classList.toggle('missing', missingComps.includes(row.dataset.code)));
+
+  if(missingFields.length || missingComps.length){
+    const parts = [];
+    if(missingFields.length) parts.push('completa i dati in "Chi sei"');
+    if(missingComps.length) parts.push(`valuta ${missingComps.length === 1 ? 'la competenza mancante' : 'le ' + missingComps.length + ' competenze mancanti'}`);
+    showAlert('Per inviare, ' + parts.join(' e ') + '. Le voci da completare sono evidenziate.');
+    const first = missingFields.length
+      ? document.querySelector('.field.missing')
+      : document.querySelector('.comp.missing');
+    first.scrollIntoView({ block:'center' });
+    return;
+  }
+
+  if(ENDPOINT.startsWith('INCOLLA')){
+    showAlert('Il form non è ancora collegato al foglio: inserisci l\'URL /exec nella costante ENDPOINT del file.');
+    return;
+  }
+
+  const data = { nome, ruolo, anni, _hp: form.elements.website.value };
+  ALL_CODES.forEach(c => { data[c] = Number(form.elements[c].value); });
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Invio in corso…';
+  try{
+    const res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(data)
+    });
+    const out = await res.json();
+    if(!out.ok) throw new Error(out.error || 'il server non ha confermato il salvataggio');
+    submitted = true;
+    form.hidden = true;
+    document.getElementById('progressBar').hidden = true;
+    document.getElementById('doneText').textContent = `Grazie, ${nome.split(' ')[0]}. Le tue valutazioni sono state registrate.`;
+    document.getElementById('done').hidden = false;
+    window.scrollTo({ top:0 });
+  }catch(err){
+    showAlert('Invio non riuscito (' + err.message + '). Le risposte sono ancora qui: riprova tra qualche istante.');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Invia le risposte';
+  }
+});
+
+updateProgress();
+</script>
+</body>
+</html>
