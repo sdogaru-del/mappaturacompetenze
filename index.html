@@ -4,99 +4,320 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mappatura Competenze</title>
+<!--
+  ==========================================================================
+  GUIDA RAPIDA PER MODIFICARE LA GRAFICA
+  - <style>: modificabile liberamente (colori, font, spaziature, layout).
+  - HTML: puoi cambiare i testi e aggiungere contenitori, immagini, footer.
+    Non rinominare né eliminare gli ID e le classi "aggancio" qui sotto.
+  - <script> principale (in fondo): non modificarlo, a parte i testi
+    tra virgolette che compaiono a schermo e il blocco CONFIGURAZIONE.
+
+  ID aggancio
+    schermate:      scLoading, scWho, scForm, scDone
+    pagina iniziale: whoHead, whoTools, whoSearch, whoCount, whoEmpty,
+                    peopleWrap, peopleGrid, pickPanel
+    modalità foto:  photoBar, photoCount, photoBulk, photoBulkBtn, photoOne,
+                    photoSave, photoUnmatched
+    questionario:   whoBar, formNotes, sections, submitBar, progress, submitBtn
+    fine:           doneText, doneRestart
+    intestazione:   topSub, demoFlag
+  Classi aggancio (lo stile si può cambiare, il nome no)
+    screen, active, show, on, done, zero, gone, solo, picked, is-picked,
+    photo-mode, drop, pcard, new, pc-del, seg, item, chip, sel-chip, sec,
+    collapsed, is-confirmed, sec-confirm, sec-toggle, cat, int-opt,
+    free-row, x
+  Attributi data-...: non toccarli (data-id, data-q, data-col, data-sec,
+    data-sec-toggle, data-p, data-v, data-a, data-cat, data-name, data-i).
+
+  FOTO: stanno nel file foto-team.js, accanto a index.html. Per crearlo o
+  aggiornarlo apri index.html?foto=1 (vedi ISTRUZIONI nel Project).
+  ==========================================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#16213E; --ink-soft:#4A5578; --bg:#FAFAF8; --panel:#FFFFFF; --line:#E4E2DA;
+  --ink:#16213E; --ink-soft:#4A5578; --ink-faint:#8A92AB;
+  --bg:#F3F5F4; --panel:#FFFFFF; --line:#E1E5E3; --line-soft:#EDF0EE;
   --teal:#2C7A6B; --teal-soft:#DCEEE9; --teal-deep:#1D5A4E;
   --amber:#C77D2E; --amber-soft:#F5E5D3; --red:#B0432B; --red-soft:#F6E1DB;
-  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  /* scala dei livelli: grigio per "nessuno", poi verde crescente */
+  --lv0:#B9BECB; --lv0-fill:#ECEEF2;
+  --lv1:#C9EBBC; --lv2:#93D07F; --lv3:#4FA463; --lv4:#1F7A43;
+  --lv-ink:#12301B;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(22,33,62,.05), 0 6px 18px rgba(22,33,62,.07);
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --font:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45}
-.topbar{background:var(--ink);color:#fff;padding:22px 16px}
-.topbar .in{max-width:860px;margin:0 auto}
-.topbar h1{margin:0 0 4px;font-size:22px;font-weight:600}
-.topbar p{margin:0;color:#B7BEDB;font-size:13.5px}
-main{max-width:860px;margin:0 auto;padding:22px 16px 140px}
+[hidden]{display:none !important}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+svg.i{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- Testata ---------- */
+.topbar{background:var(--ink);color:#fff;padding:26px 16px 30px}
+.topbar .in{max-width:980px;margin:0 auto}
+.topbar h1{margin:0 0 4px;font-size:24px;font-weight:600;letter-spacing:-.01em}
+.topbar p{margin:0;color:#B7BEDB;font-size:14px}
+.demo-flag{background:var(--amber);color:#fff;font-size:12px;font-weight:700;padding:6px 16px;text-align:center}
+
+main{max-width:980px;margin:0 auto;padding:26px 16px 150px}
 .screen{display:none}.screen.active{display:block}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:18px}
-h2{font-size:18px;margin:0 0 6px}
-h3{font-size:15px;margin:18px 0 8px}
-.sub{color:var(--ink-soft);font-size:13.5px;margin:0 0 14px}
-label.f{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin:14px 0 6px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:18px;box-shadow:0 1px 2px rgba(22,33,62,.03)}
+h2{font-size:18px;margin:0 0 6px;letter-spacing:-.005em}
+h3{font-size:15px;margin:22px 0 10px}
+.sub{color:var(--ink-soft);font-size:14px;margin:0 0 16px}
+.hint{font-size:12.5px;color:var(--ink-soft)}
+label.f{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin:16px 0 6px}
 select,input[type=text],input[type=number],textarea{
-  font:inherit;font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);width:100%}
-textarea{min-height:70px;resize:vertical}
+  font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);width:100%;
+  transition:border-color .15s, box-shadow .15s}
+select:focus,input:focus,textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+textarea{min-height:76px;resize:vertical}
 .row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:120px}
-.btn{font:inherit;font-weight:600;font-size:14px;border:none;border-radius:7px;padding:10px 18px;cursor:pointer;background:var(--teal);color:#fff}
-.btn:hover{background:#226155}
-.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-.btn.ghost:hover{background:#F2F1EC}
-.btn.small{padding:6px 12px;font-size:13px}
-.btn:disabled{background:#AFC9C2;cursor:not-allowed}
-.actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
-.note{font-size:13.5px;background:var(--amber-soft);border-left:3px solid var(--amber);padding:10px 14px;border-radius:5px;margin-bottom:16px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:14px;border:none;border-radius:10px;padding:11px 18px;cursor:pointer;background:var(--teal);color:#fff;transition:background .15s, transform .1s}
+.btn svg.i{width:17px;height:17px}
+.btn:hover{background:var(--teal-deep)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.ghost:hover{background:#F4F6F5}
+.btn.small{padding:7px 12px;font-size:13px}
+.btn:disabled{background:#AFC9C2;cursor:not-allowed;transform:none}
+.btn.ghost:disabled{background:#fff;color:var(--ink-faint)}
+.actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+
+.note{font-size:13.5px;background:var(--amber-soft);border-left:3px solid var(--amber);padding:11px 14px;border-radius:8px;margin-bottom:16px}
 .note.ok{background:var(--teal-soft);border-left-color:var(--teal);color:var(--teal-deep)}
 .note.err{background:var(--red-soft);border-left-color:var(--red);color:var(--red)}
-.hint{font-size:12.5px;color:var(--ink-soft)}
-.confirm-who{font-size:20px;font-weight:600;margin:6px 0 2px}
 
-/* sezioni */
-.sec-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-.badge{font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:20px;background:#EFEDE6;color:var(--ink-soft);white-space:nowrap}
+.search{position:relative}
+.search svg.i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-faint);pointer-events:none}
+.search input{padding-left:42px;border-radius:999px}
+
+/* ---------- Pagina iniziale: schede del team ---------- */
+.who-head{text-align:center;margin:4px auto 20px;max-width:620px}
+.who-head h2{font-size:28px;margin-bottom:6px;letter-spacing:-.015em}
+.who-head .sub{margin:0}
+.who-tools{max-width:520px;margin:0 auto 22px}
+.who-tools .search input{padding-top:13px;padding-bottom:13px;font-size:15px;box-shadow:0 2px 10px rgba(22,33,62,.06)}
+.who-count{text-align:center;font-size:12.5px;color:var(--ink-faint);margin-top:8px}
+.who-empty{text-align:center;color:var(--ink-soft);font-size:14px;margin:0 0 16px}
+.is-picked .who-head,.is-picked .who-tools,.is-picked .who-empty{display:none}
+
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:14px}
+.pcard{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:5px;padding:12px 12px 14px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);cursor:pointer;
+  transition:box-shadow .2s, border-color .2s, transform .2s}
+.pcard:hover{border-color:#C6D5D0;box-shadow:var(--shadow);transform:translateY(-2px)}
+.pcard:focus-visible{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+.pcard.gone{display:none}
+.pc-photo{width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;display:grid;place-items:center;margin-bottom:4px;
+  background:var(--av,#DCEEE9);color:var(--av-ink,#1D5A4E);font-size:34px;font-weight:600;letter-spacing:.02em}
+.pc-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.pc-name{font-weight:600;font-size:14px;line-height:1.25}
+.pc-role{font-size:12.5px;color:var(--ink-soft);min-height:1.2em}
+.pcard.new .pc-photo{background:transparent;border:2px dashed var(--line);color:var(--ink-faint)}
+.pcard.new .pc-photo svg.i{width:34px;height:34px}
+.pcard.new:hover .pc-photo{border-color:var(--teal);color:var(--teal)}
+
+.people-wrap.solo{display:flex;justify-content:center;align-items:stretch;gap:18px;flex-wrap:wrap;margin-top:10px}
+.people-wrap.solo .people{display:block}
+.pcard.picked{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft), var(--shadow);transform:none;cursor:default}
+
+.pick-panel{width:min(400px,100%);background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:center}
+.pick-kicker{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--teal);margin:0 0 6px}
+.pick-title{font-size:22px;margin:0 0 8px;letter-spacing:-.01em}
+.pick-text{color:var(--ink-soft);font-size:14px;margin:0 0 4px}
+.pick-panel input{margin-top:10px}
+.pick-panel .actions{margin-top:16px}
+
+/* ---------- Modalità foto ---------- */
+.photo-bar{border:1px solid #EAD5BA;background:#FFF9F1;border-radius:var(--radius);padding:16px 18px;margin-bottom:20px}
+.photo-bar strong{font-size:15px}
+.photo-bar p{margin:6px 0 12px;font-size:13.5px;color:var(--ink-soft)}
+.photo-bar code{background:#F5E9D9;padding:1px 5px;border-radius:4px;font-size:12.5px}
+.photo-count{display:inline-block;margin-left:8px;font-size:12.5px;font-weight:600;color:#8A5418;background:var(--amber-soft);padding:2px 10px;border-radius:999px}
+.ph-list{display:grid;gap:8px;margin-top:12px}
+.ph-row{display:flex;align-items:center;gap:10px;font-size:13px}
+.ph-row img{width:40px;height:40px;border-radius:8px;object-fit:cover}
+.ph-row span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph-row select{width:220px}
+.photo-mode .pcard.new{display:none}
+.pc-cam{position:absolute;left:12px;right:12px;top:12px;aspect-ratio:1;border-radius:10px;display:grid;place-items:center;
+  background:rgba(22,33,62,.45);color:#fff;opacity:0;transition:opacity .15s}
+.pc-cam svg.i{width:30px;height:30px}
+.photo-mode .pcard:hover .pc-cam,.pcard.drop .pc-cam{opacity:1}
+.pc-del{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;color:var(--red);z-index:2}
+.pc-del svg.i{width:15px;height:15px}
+.pcard.drop{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-soft)}
+
+/* ---------- Questionario ---------- */
+.who-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.wb-photo{width:48px;height:48px;border-radius:12px;overflow:hidden;display:grid;place-items:center;flex-shrink:0;
+  background:var(--av,#DCEEE9);color:var(--av-ink,#1D5A4E);font-weight:600;font-size:17px}
+.wb-photo img{width:100%;height:100%;object-fit:cover}
+.wb-label{display:block;font-size:12px;color:var(--ink-faint)}
+.who-bar strong{font-size:16px}
+.wb-role{color:var(--ink-soft);font-size:14px}
+
+.sec{padding:0;scroll-margin-top:16px}
+.sec-head{display:flex;align-items:center;gap:14px;padding:16px 18px 16px 20px;cursor:pointer;user-select:none}
+.sec-ico{width:42px;height:42px;border-radius:12px;background:var(--teal-soft);color:var(--teal-deep);display:grid;place-items:center;flex-shrink:0;transition:background .25s, color .25s}
+.sec-ico svg.i{width:21px;height:21px}
+.sec.is-confirmed .sec-ico{background:var(--teal);color:#fff}
+.sec-title{flex:1;min-width:0}
+.sec-title h2{margin:0;font-size:17px}
+.sec-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.badge{font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:20px;background:#EFF1EF;color:var(--ink-soft);white-space:nowrap}
 .badge.new{background:var(--amber-soft);color:#8A5418}
-.badge.mod{background:var(--teal-soft);color:var(--teal-deep)}
-.sec-confirm{margin-top:20px;padding:12px 14px;border-radius:8px;background:#F4F3EE;display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:14px;font-weight:600}
-.sec-confirm input{width:18px;height:18px;margin-top:1px;accent-color:var(--teal);flex-shrink:0}
-.sec-confirm.done{background:var(--teal-soft);color:var(--teal-deep)}
-.sec-errors{color:var(--red);font-size:12.5px;margin-top:8px}
+.badge.mod{background:#E3E9FB;color:#3A4BB8}
+.sec-done{display:none;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:3px 10px 3px 8px;border-radius:20px;background:var(--teal);color:#fff}
+.sec-done svg.i{width:13px;height:13px;stroke-width:3}
+.sec.is-confirmed .sec-done{display:inline-flex}
+.sec-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;flex-shrink:0;color:var(--ink-soft);transition:background .15s}
+.sec-toggle:hover{background:#F4F6F5;color:var(--ink)}
+.sec-toggle svg.i{transform:rotate(180deg);transition:transform .35s var(--ease)}
+.sec.collapsed .sec-toggle svg.i{transform:none}
+.sec-collapse{display:grid;grid-template-rows:1fr;transition:grid-template-rows .4s var(--ease)}
+.sec.collapsed .sec-collapse{grid-template-rows:0fr}
+.sec-inner{min-height:0;overflow:hidden;visibility:visible;transition:visibility 0s}
+.sec.collapsed .sec-inner{visibility:hidden;transition:visibility 0s linear .4s}
+.sec-pad{padding:2px 22px 22px}
 
-/* scala livelli */
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-shrink:0}
-.seg button{font:inherit;font-size:12.5px;font-weight:600;border:none;background:#fff;color:var(--ink-soft);padding:6px 10px;cursor:pointer;min-width:34px}
-.seg button+button{border-left:1px solid var(--line)}
-.seg button.on{background:var(--teal);color:#fff}
-.seg button.on.zero{background:#8a8fa3}
-.item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.sec-confirm{margin-top:22px;padding:13px 16px;border-radius:12px;background:#F2F4F3;border:1px solid transparent;display:flex;gap:10px;align-items:center;cursor:pointer;font-size:14px;font-weight:600;transition:background .2s, color .2s}
+.sec-confirm input{width:19px;height:19px;margin:0;accent-color:var(--teal);flex-shrink:0}
+.sec-confirm:hover{border-color:var(--line)}
+.sec-confirm.done{background:var(--teal-soft);color:var(--teal-deep)}
+.sec-errors{color:var(--red);font-size:12.5px;margin-top:10px}
+
+/* ---------- Scala dei livelli ---------- */
+[data-v="0"],[data-v=""]{--c:var(--lv0)}
+[data-v="1"]{--c:var(--lv1)} [data-v="2"]{--c:var(--lv2)} [data-v="3"]{--c:var(--lv3)} [data-v="4"]{--c:var(--lv4)}
+.lv-legend{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:4px 0 20px}
+.lv-card{border:1px solid var(--line);border-top:5px solid var(--c);border-radius:10px;padding:10px 12px;background:#fff}
+.lv-card strong{display:flex;align-items:baseline;gap:6px;font-size:13.5px}
+.lv-card strong span{font-size:16px}
+.lv-card p{margin:4px 0 0;font-size:12.5px;color:var(--ink-soft);line-height:1.4}
+
+.seg{display:inline-flex;gap:4px;flex-shrink:0}
+.seg button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:66px;padding:6px 6px 10px;
+  border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer;color:var(--ink-soft);
+  transition:background .15s, border-color .15s, color .15s, transform .1s}
+.seg button::after{content:'';position:absolute;left:10px;right:10px;bottom:4px;height:3px;border-radius:2px;background:var(--c);transition:opacity .15s}
+.seg button b{font-size:14px;line-height:1}
+.seg button small{font-size:10.5px;line-height:1.1;font-weight:500}
+.seg button:hover{border-color:var(--c);color:var(--ink)}
+.seg button:active{transform:scale(.97)}
+.seg button.on{background:var(--c);border-color:var(--c);color:var(--lv-ink)}
+.seg button.on::after{opacity:0}
+.seg button.on[data-v="4"]{color:#fff}
+.seg button.on.zero{background:var(--lv0-fill);border-color:var(--lv0);color:var(--ink-soft)}
+
+.item{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid var(--line-soft)}
 .item:last-child{border-bottom:none}
 .item .lbl{font-size:14px}
 .item.missing .lbl{color:var(--red)}
-.area{border:1px solid var(--line);border-radius:8px;padding:4px 14px;margin-bottom:12px}
-.area-title{font-size:13px;font-weight:700;color:var(--teal-deep);text-transform:uppercase;letter-spacing:.03em;padding:10px 0 4px}
-.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--ink-soft);margin-bottom:14px}
-.legend b{color:var(--ink)}
+.area{border:1px solid var(--line);border-radius:12px;padding:4px 16px;margin-bottom:12px}
+.area-title{font-size:12.5px;font-weight:700;color:var(--teal-deep);text-transform:uppercase;letter-spacing:.04em;padding:12px 0 4px}
 
-/* progetti */
-.chips{display:flex;flex-wrap:wrap;gap:6px;max-height:260px;overflow-y:auto;padding:2px}
-.chip{font:inherit;font-size:13px;border:1px solid var(--line);background:#fff;border-radius:20px;padding:5px 12px;cursor:pointer;color:var(--ink)}
+/* ---------- Progetti ---------- */
+.proj-block + .proj-block{margin-top:26px;padding-top:6px;border-top:1px solid var(--line-soft)}
+.sel-box{border:1px dashed #CBD8D4;border-radius:12px;padding:10px 12px 12px;margin-bottom:12px;background:#FAFCFB}
+.sel-lbl{display:block;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--teal-deep)}
+.sel-lbl.muted{color:var(--ink-faint);text-transform:none;letter-spacing:0;font-weight:500;font-size:13px}
+.sel-chip{display:inline-flex;align-items:center;gap:6px;background:var(--teal);color:#fff;border:none;border-radius:999px;padding:5px 8px 5px 12px;font-size:13px;cursor:pointer;margin:8px 6px 0 0;transition:background .15s}
+.sel-chip,.chip{max-width:100%}
+.sel-chip svg.i{width:14px;height:14px;opacity:.8}
+.sel-chip:hover{background:var(--teal-deep)}
+.proj-search{margin-bottom:12px}
+.pgroups{columns:2 290px;column-gap:14px}
+.pgroup{break-inside:avoid;border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;margin-bottom:14px;background:#fff;transition:border-color .2s}
+.pgroup.has-sel{border-color:#B9D7CF}
+.pgroup-head{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;color:var(--ink);margin-bottom:8px}
+.pgroup-head svg.i{width:15px;height:15px;color:var(--ink-faint)}
+.pgroup-head .n{margin-left:auto;font-size:11.5px;background:var(--teal);color:#fff;border-radius:999px;padding:1px 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:13px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;cursor:pointer;color:var(--ink);text-align:left;transition:background .15s, border-color .15s, color .15s}
+.chip:hover{border-color:var(--teal)}
+.chip svg.i{width:14px;height:14px;stroke-width:3}
 .chip.on{background:var(--teal);border-color:var(--teal);color:#fff}
-.search{margin-bottom:8px}
-.moved{font-size:12.5px;color:var(--teal-deep);margin-top:6px}
+.moved{font-size:12.5px;color:var(--teal-deep);margin-top:2px}
 
-/* strumenti */
-details.cat{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;padding:0 14px}
-details.cat summary{cursor:pointer;padding:11px 0;font-weight:600;font-size:14px;display:flex;justify-content:space-between}
-details.cat summary .cnt{font-weight:500;color:var(--ink-soft);font-size:12.5px}
+/* ---------- Strumenti ---------- */
+details.cat{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:0 16px;background:#fff}
+details.cat summary{cursor:pointer;padding:13px 0;font-weight:600;font-size:14px;display:flex;align-items:center;gap:10px;list-style:none}
+details.cat summary::-webkit-details-marker{display:none}
+details.cat summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--ink-faint);border-bottom:2px solid var(--ink-faint);transform:rotate(45deg);margin:0 4px 3px 4px;transition:transform .2s}
+details.cat[open] summary::after{transform:rotate(-135deg);margin-bottom:-3px}
+details.cat summary .cnt{margin-left:auto;font-weight:600;font-size:12px;color:var(--teal-deep);background:var(--teal-soft);border-radius:999px;padding:1px 9px}
+details.cat summary .cnt:empty{display:none}
 
-/* righe libere */
+/* ---------- Righe libere (altre competenze / altri strumenti) ---------- */
 .free-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
 .free-row input{flex:1}
-.free-row select{width:150px;flex-shrink:0}
-.x{border:none;background:none;font-size:18px;color:var(--ink-soft);cursor:pointer;padding:4px 8px}
+.free-row select{width:170px;flex-shrink:0}
+.x{border:none;background:none;font-size:20px;line-height:1;color:var(--ink-faint);cursor:pointer;padding:4px 8px;border-radius:8px}
+.x:hover{color:var(--red);background:var(--red-soft)}
 
-/* checkbox interessi */
-.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
-.checks label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:7px;padding:9px 12px;cursor:pointer;font-size:14px}
-.checks input{accent-color:var(--teal);width:16px;height:16px}
+/* ---------- Interessi di crescita ---------- */
+.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.int-opt{display:flex;align-items:center;gap:10px;text-align:left;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:14px;cursor:pointer;
+  transition:background .18s, border-color .18s, color .18s, transform .1s}
+.int-opt:hover{border-color:var(--teal)}
+.int-opt:active{transform:scale(.98)}
+.int-opt .tick{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:#fff;color:var(--teal);transform:scale(0);transition:transform .2s var(--ease)}
+.int-opt .tick svg.i{width:13px;height:13px;stroke-width:3.2}
+.int-opt.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.int-opt.on .tick{transform:scale(1)}
 
-/* barra invio */
-.submitbar{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);padding:12px 16px;display:none;z-index:20}
+/* ---------- Barra di invio ---------- */
+.submitbar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:12px 16px;display:none;z-index:20}
 .submitbar.show{display:block}
-.submitbar .in{max-width:860px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.submitbar .in{max-width:980px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .progress{display:flex;gap:6px;flex-wrap:wrap}
-.progress a{font-size:12px;font-weight:600;text-decoration:none;padding:4px 10px;border-radius:20px;background:#EFEDE6;color:var(--ink-soft)}
+.progress a{font-size:12px;font-weight:600;text-decoration:none;padding:5px 11px;border-radius:20px;background:#EFF1EF;color:var(--ink-soft);transition:background .2s, color .2s}
+.progress a:hover{background:#E4E8E6}
 .progress a.done{background:var(--teal-soft);color:var(--teal-deep)}
-.demo-flag{background:var(--amber);color:#fff;font-size:12px;font-weight:700;padding:6px 16px;text-align:center}
+
+/* ---------- Fine ---------- */
+.done-card{text-align:center;padding:44px 22px}
+.done-ico{width:64px;height:64px;border-radius:50%;background:var(--teal-soft);color:var(--teal-deep);display:grid;place-items:center;margin:0 auto 14px}
+.done-ico svg.i{width:32px;height:32px;stroke-width:2.6}
+.done-card h2{font-size:24px}
+.done-card .actions{justify-content:center}
+
+/* ---------- Mobile ---------- */
+@media (max-width:760px){
+  .lv-legend{grid-template-columns:1fr 1fr}
+  .item{flex-direction:column;align-items:stretch;gap:8px}
+  .seg{display:flex}
+  .seg button{flex:1;min-width:0;padding-left:2px;padding-right:2px}
+  .seg button small{font-size:10px}
+}
+@media (max-width:560px){
+  .who-head h2{font-size:24px}
+  .people{grid-template-columns:repeat(2,1fr);gap:10px}
+  .sec-head{padding:14px 14px 14px 16px;gap:10px}
+  .sec-ico{width:36px;height:36px}
+  .sec-pad{padding:2px 16px 18px}
+  .card{padding:18px}
+  .badge{white-space:normal}
+  .submitbar .in{flex-wrap:nowrap}
+  .progress{flex-wrap:nowrap;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}
+  .progress a{white-space:nowrap}
+  .free-row{flex-wrap:wrap}
+  .free-row input{flex-basis:100%}
+  .free-row select{flex:1;width:auto}
+  .ph-row select{width:150px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{transition-duration:0s !important;transition-delay:0s !important}
+}
 </style>
 </head>
 <body>
@@ -111,39 +332,47 @@ details.cat summary .cnt{font-weight:500;color:var(--ink-soft);font-size:12.5px}
   <!-- 0. caricamento -->
   <div class="screen active" id="scLoading"><div class="card"><p class="sub">Caricamento in corso…</p></div></div>
 
-  <!-- 1. identificazione -->
-  <div class="screen" id="scWho"><div class="card">
-    <h2>Chi sei?</h2>
-    <p class="sub">Scegli il tuo nome: il questionario si aprirà con le risposte che hai dato l'ultima volta, da rivedere e aggiornare.</p>
-    <label class="f" for="whoSelect">Nome e cognome</label>
-    <select id="whoSelect"></select>
-    <div id="newWrap" hidden>
-      <label class="f" for="newName">Il tuo nome e cognome</label>
-      <input type="text" id="newName" placeholder="Es. Mario Rossi" autocomplete="name">
+  <!-- 1. pagina iniziale: scelta della persona -->
+  <div class="screen" id="scWho">
+    <div class="photo-bar" id="photoBar" hidden>
+      <strong>Modalità foto</strong><span class="photo-count" id="photoCount"></span>
+      <p>Clicca su una scheda (o trascinaci sopra un'immagine) per caricare la foto di quella persona, oppure caricane tante insieme: vengono abbinate dal nome del file, per esempio <code>mario-rossi.jpg</code> o <code>Rossi Mario.png</code>. Quando hai finito scarica <code>foto-team.js</code> e mettilo nella cartella del repository, accanto a <code>index.html</code>.</p>
+      <div class="actions" style="margin-top:0">
+        <button class="btn ghost" id="photoBulkBtn" type="button"></button>
+        <button class="btn" id="photoSave" type="button"></button>
+      </div>
+      <input type="file" id="photoBulk" accept="image/*" multiple hidden>
+      <input type="file" id="photoOne" accept="image/*" hidden>
+      <div id="photoUnmatched"></div>
     </div>
-    <div class="actions"><button class="btn" id="whoNext" disabled>Continua</button></div>
-  </div></div>
 
-  <!-- 2. conferma identità -->
-  <div class="screen" id="scConfirm"><div class="card">
-    <h2>Confermi la tua identità?</h2>
-    <p class="confirm-who" id="confirmName"></p>
-    <p class="sub" id="confirmRole"></p>
-    <p class="hint">Se non sei tu, torna indietro: altrimenti aggiorneresti il profilo di un'altra persona.</p>
-    <div class="actions">
-      <button class="btn" id="confirmYes">Sì, continua</button>
-      <button class="btn ghost" id="confirmNo">No, torna indietro</button>
+    <div class="who-head" id="whoHead">
+      <h2>Chi sei?</h2>
+      <p class="sub">Cerca il tuo nome o scegli la tua scheda: il questionario si aprirà con le risposte dell'ultima volta, da rivedere e aggiornare.</p>
     </div>
-  </div></div>
+    <div class="who-tools" id="whoTools">
+      <div class="search" id="whoSearchBox">
+        <input type="text" id="whoSearch" placeholder="Cerca il tuo nome…" autocomplete="off" aria-label="Cerca il tuo nome">
+      </div>
+      <div class="who-count" id="whoCount"></div>
+    </div>
+    <p class="who-empty" id="whoEmpty" hidden>Nessun nome trovato. Se non sei in elenco, scegli «Non sono in elenco».</p>
+    <div class="people-wrap" id="peopleWrap">
+      <div class="people" id="peopleGrid"></div>
+      <div class="pick-panel" id="pickPanel" hidden></div>
+    </div>
+  </div>
 
-  <!-- 3. questionario -->
+  <!-- 2. questionario -->
   <div class="screen" id="scForm">
+    <div class="who-bar" id="whoBar"></div>
     <div id="formNotes"></div>
     <div id="sections"></div>
   </div>
 
-  <!-- 4. fine -->
-  <div class="screen" id="scDone"><div class="card">
+  <!-- 3. fine -->
+  <div class="screen" id="scDone"><div class="card done-card">
+    <div class="done-ico"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div>
     <h2>Grazie, risposte salvate</h2>
     <p class="sub" id="doneText"></p>
     <div class="actions"><button class="btn ghost" id="doneRestart">Torna all'inizio</button></div>
@@ -154,6 +383,9 @@ details.cat summary .cnt{font-weight:500;color:var(--ink-soft);font-size:12.5px}
   <div class="progress" id="progress"></div>
   <button class="btn" id="submitBtn" disabled>Invia</button>
 </div></div>
+
+<!-- Foto del team (file facoltativo, generato da index.html?foto=1) -->
+<script src="foto-team.js"></script>
 
 <script>
 /* =====================================================================
@@ -166,8 +398,27 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztjOHTTfiz6fVcwej-Z
 // true = ogni competenza va valutata (anche "Nessuna"); false = si possono lasciare vuote.
 const REQUIRE_ALL_COMPETENCES = true;
 
+// Descrizioni dei livelli nelle legende. I nomi dei livelli arrivano dal foglio Config.
+const LEVEL_HINTS = {
+  competenze: {
+    0: 'Non ho mai lavorato su questo tema.',
+    1: 'Conosco i concetti, ho seguito il tema solo marginalmente.',
+    2: 'Ho svolto attività semplici con il supporto di colleghi.',
+    3: 'Svolgo le attività in autonomia su progetti reali.',
+    4: 'Sono un riferimento: guido altri e gestisco casi complessi.'
+  },
+  strumenti: {
+    0: 'Non lo uso.',
+    1: "L'ho usato poche volte, per funzioni semplici.",
+    2: 'Lo uso per le funzioni principali, a volte con supporto.',
+    3: 'Lo uso con regolarità e in autonomia.',
+    4: 'Ne conosco le funzioni avanzate e supporto i colleghi.'
+  }
+};
+
 /* ===================================================================== */
 const DEMO = !SCRIPT_URL || new URLSearchParams(location.search).has('demo');
+const PHOTO_MODE = new URLSearchParams(location.search).has('foto');
 const NEW_PERSON = '__new__';
 const SECTIONS = [
   { key:'anagrafica',  title:'Ruolo ed esperienza' },
@@ -176,6 +427,7 @@ const SECTIONS = [
   { key:'strumenti',   title:'Strumenti e tecnologie' },
   { key:'interessi',   title:'Interessi di crescita' }
 ];
+const SECTION_ICONS = { anagrafica:'user', progetti:'briefcase', competenze:'award', strumenti:'wrench', interessi:'trend' };
 const MONTHS = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
 
 let C = null;      // cataloghi da ?action=init
@@ -184,6 +436,48 @@ let S = null;      // stato della compilazione
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function show(id){ document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0,0); }
+
+const REDUCED_MOTION = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) || !document.body.animate;
+const ICONS = {
+  user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  briefcase:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  award:'<circle cx="12" cy="8" r="6"/><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11"/>',
+  wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  trend:'<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  chevron:'<path d="m6 9 6 6 6-6"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
+  x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+  upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
+  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+  building:'<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/>',
+  arrow:'<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>'
+};
+function icon(name){ return `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ''}</svg>`; }
+
+/* Testo normalizzato per ricerche e abbinamento delle foto: minuscolo, senza accenti e apostrofi */
+function normKey(s){
+  return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/['’`]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+/* --------------------------- FOTO ----------------------------------- */
+const PHOTOS = Object.assign({}, window.FOTO_TEAM || {});
+const AVATAR_COLORS = [['#DCEEE9','#1D5A4E'],['#F5E5D3','#8A5418'],['#E3E7FB','#3A4BB8'],['#F6E1DB','#8F3520'],
+  ['#E4EEDF','#3F6B44'],['#F4ECD3','#7D6216'],['#ECE3F3','#6A3F7C'],['#DDEEF4','#2A6F8C']];
+function hashStr(s){ let h = 0; for(const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; }
+function photoOf(p){ return PHOTOS[normKey(p.nome)] || ''; }
+function initials(name){
+  const t = String(name || '').replace(/\(.*?\)/g, '').trim().split(/\s+/).filter(Boolean);
+  return ((t[0] || '?')[0] + (t.length > 1 ? t[t.length - 1][0] : '')).toUpperCase();
+}
+function avatarHtml(p, cls){
+  const src = photoOf(p);
+  const [bg, fg] = AVATAR_COLORS[hashStr(p.nome) % AVATAR_COLORS.length];
+  return `<span class="${cls}" style="--av:${bg};--av-ink:${fg}">${src ? `<img src="${src}" alt="">` : esc(initials(p.nome))}</span>`;
+}
 
 /* --------------------------- API ------------------------------------ */
 const realApi = {
@@ -207,6 +501,7 @@ let api = null;
 async function boot(){
   api = DEMO ? demoApi() : realApi;
   $('demoFlag').hidden = !DEMO;
+  $('whoSearchBox').insertAdjacentHTML('afterbegin', icon('search'));
   try{
     C = await api.init();
   }catch(err){
@@ -236,51 +531,379 @@ function parseLevels(list){
   return out.length ? out : [{v:1,l:'Base'},{v:2,l:'Discreto'},{v:3,l:'Autonomo'},{v:4,l:'Avanzato'}];
 }
 
-/* ------------------ 1-2. IDENTIFICAZIONE ---------------------------- */
+/* ------------------ 1. PAGINA INIZIALE: SCHEDE ---------------------- */
+const HOME = { picked:null, busy:false, person:null, lastPromise:null, keysBound:false };
+const cards = () => Array.from($('peopleGrid').querySelectorAll('.pcard'));
+const cardFor = (id) => cards().find(c => c.dataset.id === id);
+
+function personCardHtml(p){
+  return `<button type="button" class="pcard" data-id="${esc(p.id)}" data-q="${esc(normKey(p.nome))}">
+    ${avatarHtml(p, 'pc-photo')}
+    <span class="pc-name">${esc(p.nome)}</span>
+    <span class="pc-role">${esc(p.ruolo || '')}</span>
+    ${PHOTO_MODE ? `<span class="pc-cam">${icon('camera')}</span>${photoOf(p) ? `<span class="pc-del" title="Rimuovi la foto">${icon('x')}</span>` : ''}` : ''}
+  </button>`;
+}
+function newCardHtml(){
+  return `<button type="button" class="pcard new" data-id="${NEW_PERSON}" data-q="">
+    <span class="pc-photo">${icon('plus')}</span>
+    <span class="pc-name">Non sono in elenco</span>
+    <span class="pc-role">Crea un nuovo profilo</span>
+  </button>`;
+}
+
 function buildWho(){
-  const sel = $('whoSelect');
-  sel.innerHTML = '<option value="" selected disabled>Seleziona il tuo nome…</option>' +
-    C.persone.map(p => `<option value="${esc(p.id)}">${esc(p.nome)}</option>`).join('') +
-    `<option value="${NEW_PERSON}">Non sono in elenco</option>`;
-  const update = () => {
-    const isNew = sel.value === NEW_PERSON;
-    $('newWrap').hidden = !isNew;
-    $('whoNext').disabled = !sel.value || (isNew && $('newName').value.trim().split(/\s+/).length < 2);
+  Object.assign(HOME, { picked:null, busy:false, person:null, lastPromise:null });
+  $('scWho').classList.remove('is-picked');
+  $('peopleWrap').classList.remove('solo');
+  $('pickPanel').hidden = true;
+  $('pickPanel').innerHTML = '';
+  $('whoSearch').value = '';
+  $('whoEmpty').hidden = true;
+  $('peopleGrid').innerHTML = C.persone.map(personCardHtml).join('') + newCardHtml();
+  $('whoCount').textContent = `${C.persone.length} persone nel team`;
+  $('whoSearch').oninput = () => flip(cards(), applyFilter);
+  $('whoSearch').onkeydown = (e) => {
+    if(e.key !== 'Enter') return;
+    const vis = cards().filter(c => !c.classList.contains('gone') && c.dataset.id !== NEW_PERSON);
+    if(vis.length === 1){ e.preventDefault(); pickCard(vis[0]); }
   };
-  sel.onchange = update;
-  $('newName').oninput = update;
-  $('whoNext').onclick = () => {
-    if(sel.value === NEW_PERSON){
-      const nome = $('newName').value.trim().replace(/\s+/g,' ');
-      const clash = C.persone.find(p => p.nome.toLowerCase() === nome.toLowerCase());
-      if(clash){ sel.value = clash.id; update(); }
-      else { goConfirm({ id:'', nome, ruolo:'', isNew:true }); return; }
+  $('peopleGrid').onclick = onGridClick;
+  if(!HOME.keysBound){
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape' && HOME.picked && $('scWho').classList.contains('active')) unpick();
+    });
+    HOME.keysBound = true;
+  }
+  if(PHOTO_MODE) initPhotoMode();
+}
+
+function applyFilter(){
+  const k = normKey($('whoSearch').value);
+  const toks = k ? k.split(' ') : [];
+  let n = 0;
+  cards().forEach(c => {
+    if(c.dataset.id === NEW_PERSON){ c.classList.remove('gone'); return; }
+    const words = c.dataset.q.split(' ');
+    const hit = !toks.length || toks.every(t => words.some(w => w.startsWith(t))) || c.dataset.q.includes(k);
+    c.classList.toggle('gone', !hit);
+    if(hit) n++;
+  });
+  $('whoEmpty').hidden = n > 0;
+}
+
+/* Anima gli spostamenti: misura le posizioni prima e dopo il cambiamento e fa scorrere le schede */
+function flip(els, mutate){
+  const first = new Map();
+  els.forEach(el => first.set(el, el.getBoundingClientRect()));
+  mutate();
+  if(REDUCED_MOTION) return;
+  let k = 0;
+  els.forEach(el => {
+    if(el.classList.contains('gone') || el.hidden) return;
+    const f = first.get(el), l = el.getBoundingClientRect();
+    if(!f || (f.width === 0 && f.height === 0)){
+      el.animate([{opacity:0, transform:'scale(.94)'}, {opacity:1, transform:'none'}],
+        {duration:260, delay:Math.min(k++ * 14, 220), easing:'ease-out', fill:'backwards'});
+      return;
     }
-    const p = C.persone.find(x => x.id === sel.value);
-    goConfirm({ ...p, isNew:false });
-  };
-  $('confirmNo').onclick = () => show('scWho');
+    const dx = f.left - l.left, dy = f.top - l.top;
+    if(Math.abs(dx) > .5 || Math.abs(dy) > .5){
+      el.animate([{transform:`translate(${dx}px, ${dy}px)`}, {transform:'none'}], {duration:440, easing:'cubic-bezier(.2,.8,.2,1)'});
+    }
+  });
 }
 
-function goConfirm(person){
-  $('confirmName').textContent = `Sei ${person.nome}?`;
-  $('confirmRole').textContent = person.isNew ? 'Nuovo profilo: il questionario partirà vuoto.' : (person.ruolo || 'Ruolo non indicato');
-  $('confirmYes').onclick = () => startForm(person);
-  show('scConfirm');
-}
-
-/* ------------------ 3. QUESTIONARIO --------------------------------- */
-async function startForm(person){
-  $('confirmYes').disabled = true;
-  let last = { found:false };
-  try{
-    if(!person.isNew) last = await api.last(person.id);
-  }catch(err){
-    alert('Non è stato possibile recuperare le tue risposte precedenti: ' + err.message);
-    $('confirmYes').disabled = false;
+function onGridClick(e){
+  const card = e.target.closest('.pcard');
+  if(!card) return;
+  if(PHOTO_MODE){
+    if(card.dataset.id === NEW_PERSON) return;
+    const p = C.persone.find(x => x.id === card.dataset.id);
+    if(e.target.closest('.pc-del')){ delete PHOTOS[normKey(p.nome)]; PHOTO_DIRTY = true; replaceCard(p); updatePhotoBar(); return; }
+    PHOTO_TARGET = p;
+    $('photoOne').click();
     return;
   }
-  $('confirmYes').disabled = false;
+  if(HOME.picked) return;
+  pickCard(card);
+}
+
+async function pickCard(card){
+  if(HOME.busy || HOME.picked) return;
+  HOME.busy = true;
+  const isNew = card.dataset.id === NEW_PERSON;
+  const person = isNew ? null : C.persone.find(p => p.id === card.dataset.id);
+  HOME.person = person;
+  HOME.lastPromise = person ? api.last(person.id) : null;
+  if(HOME.lastPromise) HOME.lastPromise.catch(() => {});
+  fillPickPanel(person);
+
+  // 1. le altre schede e la ricerca svaniscono
+  const others = cards().filter(c => c !== card && !c.classList.contains('gone'));
+  const fading = others.concat([$('whoHead'), $('whoTools'), $('whoEmpty')].filter(el => !el.hidden));
+  const anims = REDUCED_MOTION ? [] : fading.map(el => el.animate(
+    [{opacity:1, transform:'none'}, {opacity:0, transform: el.classList.contains('pcard') ? 'scale(.9)' : 'translateY(-6px)'}],
+    {duration:200, easing:'ease-in', fill:'forwards'}));
+  await Promise.all(anims.map(a => a.finished.catch(() => {})));
+
+  // 2. la scheda scelta scivola al centro, accanto al riquadro di conferma
+  const width = card.getBoundingClientRect().width;
+  const panel = $('pickPanel');
+  flip([card], () => {
+    others.forEach(c => c.classList.add('gone'));
+    $('scWho').classList.add('is-picked');
+    $('peopleWrap').classList.add('solo');
+    card.classList.add('picked');
+    card.style.width = width + 'px';
+    panel.hidden = false;
+  });
+  anims.forEach(a => a.cancel());
+  window.scrollTo(0, 0);
+
+  // 3. compare la conferma
+  if(!REDUCED_MOTION){
+    await panel.animate([{opacity:0, transform:'translateX(-14px)'}, {opacity:1, transform:'none'}],
+      {duration:300, delay:220, easing:'ease-out', fill:'backwards'}).finished.catch(() => {});
+  }
+  HOME.picked = card;
+  HOME.busy = false;
+  const focusEl = $('newName') || $('pickYes');
+  if(focusEl) focusEl.focus({preventScroll:true});
+}
+
+function fillPickPanel(person){
+  const panel = $('pickPanel');
+  if(person){
+    const first = person.nome.replace(/\s*\(.*\)\s*$/, '').split(' ')[0];
+    panel.innerHTML = `
+      <p class="pick-kicker">Profilo selezionato</p>
+      <h3 class="pick-title">Ciao ${esc(first)}, sei tu?</h3>
+      <p class="pick-text" id="pickInfo">Sto recuperando le tue ultime risposte…</p>
+      <div class="actions">
+        <button class="btn" id="pickYes" type="button">Sì, sono io ${icon('arrow')}</button>
+        <button class="btn ghost" id="pickNo" type="button">No, cambia persona</button>
+      </div>`;
+    HOME.lastPromise.then(last => {
+      if(HOME.person !== person || !$('pickInfo')) return;
+      const lbl = last.found ? rilevazioneLabel(last.row.rilevazione) : '';
+      $('pickInfo').textContent = !last.found
+        ? 'Non ci sono risposte precedenti: il questionario partirà vuoto.'
+        : last.gia_compilato_in_rilevazione
+          ? `Hai già inviato le risposte per la rilevazione ${C.rilevazione_corrente}: potrai rivederle e aggiornarle.`
+          : `Ritroverai le risposte ${lbl.startsWith('rilevazione') ? 'della' : 'del'} ${lbl}, da rivedere e aggiornare.`;
+    }, () => {
+      if(HOME.person === person && $('pickInfo')) $('pickInfo').textContent = 'Non riesco a recuperare le tue risposte precedenti in questo momento: riprova tra poco.';
+    });
+    $('pickYes').onclick = () => confirmPick({ ...person, isNew:false });
+  }else{
+    panel.innerHTML = `
+      <p class="pick-kicker">Nuovo profilo</p>
+      <h3 class="pick-title">Come ti chiami?</h3>
+      <p class="pick-text">Inserisci nome e cognome: il questionario partirà vuoto.</p>
+      <input type="text" id="newName" placeholder="Es. Mario Rossi" autocomplete="name">
+      <div class="actions">
+        <button class="btn" id="pickYes" type="button" disabled>Continua ${icon('arrow')}</button>
+        <button class="btn ghost" id="pickNo" type="button">Torna all'elenco</button>
+      </div>`;
+    const upd = () => { $('pickYes').disabled = $('newName').value.trim().split(/\s+/).length < 2; };
+    $('newName').oninput = upd;
+    $('newName').onkeydown = (e) => { if(e.key === 'Enter' && !$('pickYes').disabled) $('pickYes').click(); };
+    $('pickYes').onclick = async () => {
+      const nome = $('newName').value.trim().replace(/\s+/g, ' ');
+      const clash = C.persone.find(p => p.nome.toLowerCase() === nome.toLowerCase());
+      if(clash){ await unpick({ clear:true }); pickCard(cardFor(clash.id)); return; }
+      confirmPick({ id:'', nome, ruolo:'', isNew:true });
+    };
+  }
+  $('pickNo').onclick = () => unpick();
+}
+
+async function confirmPick(person){
+  const btn = $('pickYes');
+  const label = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Apertura del questionario…';
+  const ok = await startForm(person, person.isNew ? null : HOME.lastPromise);
+  if(!ok){
+    btn.disabled = false;
+    btn.innerHTML = label;
+    if(!person.isNew){ HOME.lastPromise = api.last(person.id); HOME.lastPromise.catch(() => {}); }
+  }
+}
+
+async function unpick(opts){
+  opts = opts || {};
+  if(HOME.busy || !HOME.picked) return;
+  HOME.busy = true;
+  const card = HOME.picked, panel = $('pickPanel');
+  if(!REDUCED_MOTION){
+    await panel.animate([{opacity:1}, {opacity:0, transform:'translateX(-10px)'}], {duration:150, easing:'ease-in', fill:'forwards'}).finished.catch(() => {});
+  }
+  if(opts.clear) $('whoSearch').value = '';
+  flip(cards(), () => {
+    panel.getAnimations().forEach(a => a.cancel());
+    panel.hidden = true;
+    panel.innerHTML = '';
+    $('peopleWrap').classList.remove('solo');
+    $('scWho').classList.remove('is-picked');
+    card.classList.remove('picked');
+    card.style.width = '';
+    applyFilter();
+  });
+  if(!REDUCED_MOTION){
+    [$('whoHead'), $('whoTools')].forEach(el => el.animate([{opacity:0}, {opacity:1}], {duration:260, easing:'ease-out'}));
+  }
+  Object.assign(HOME, { picked:null, person:null, lastPromise:null, busy:false });
+  if(!opts.clear){
+    card.focus({preventScroll:true});
+    card.scrollIntoView({block:'nearest', behavior: REDUCED_MOTION ? 'auto' : 'smooth'});
+  }
+}
+
+/* ------------------ MODALITÀ FOTO (index.html?foto=1) ---------------- */
+let PHOTO_DIRTY = false, PHOTO_TARGET = null, PHOTO_UNMATCHED = [], PHOTO_BOUND = false;
+
+function initPhotoMode(){
+  $('scWho').classList.add('photo-mode');
+  $('photoBar').hidden = false;
+  $('photoBulkBtn').innerHTML = `${icon('upload')} Carica più foto insieme`;
+  $('photoBulkBtn').onclick = () => $('photoBulk').click();
+  $('photoSave').onclick = downloadPhotos;
+  $('photoBulk').onchange = async (e) => {
+    const files = Array.from(e.target.files); e.target.value = '';
+    const errors = [];
+    for(const f of files){
+      try{
+        const data = await fileToPhoto(f);
+        const p = matchFileToPerson(f.name);
+        if(p) setPhoto(p, data); else PHOTO_UNMATCHED.push({ name:f.name, data });
+      }catch(err){ errors.push(f.name); }
+    }
+    renderUnmatched();
+    if(errors.length) alert('Non sono riuscito a leggere: ' + errors.join(', ') + '. Usa file JPG o PNG.');
+  };
+  $('photoOne').onchange = async (e) => {
+    const f = e.target.files[0]; e.target.value = '';
+    if(!f || !PHOTO_TARGET) return;
+    try{ setPhoto(PHOTO_TARGET, await fileToPhoto(f)); }
+    catch(err){ alert('Non riesco a leggere questa immagine. Usa un file JPG o PNG.'); }
+  };
+  const grid = $('peopleGrid');
+  grid.ondragover = (e) => {
+    const card = e.target.closest('.pcard:not(.new)'); if(!card) return;
+    e.preventDefault();
+    cards().forEach(c => c.classList.toggle('drop', c === card));
+  };
+  grid.ondragleave = (e) => { const card = e.target.closest('.pcard'); if(card && !card.contains(e.relatedTarget)) card.classList.remove('drop'); };
+  grid.ondrop = async (e) => {
+    const card = e.target.closest('.pcard:not(.new)'); if(!card) return;
+    e.preventDefault(); card.classList.remove('drop');
+    const f = e.dataTransfer.files[0]; if(!f) return;
+    const p = C.persone.find(x => x.id === card.dataset.id);
+    try{ setPhoto(p, await fileToPhoto(f)); }catch(err){ alert('Non riesco a leggere questa immagine. Usa un file JPG o PNG.'); }
+  };
+  if(!PHOTO_BOUND){
+    document.addEventListener('dragover', (e) => e.preventDefault());
+    document.addEventListener('drop', (e) => e.preventDefault());
+    window.addEventListener('beforeunload', (e) => { if(PHOTO_DIRTY){ e.preventDefault(); e.returnValue = ''; } });
+    PHOTO_BOUND = true;
+  }
+  renderUnmatched();
+  updatePhotoBar();
+}
+
+/* Ritaglia al centro un quadrato (leggermente spostato verso l'alto, dove di solito c'è il viso) e lo riduce a 320 px */
+function fileToPhoto(file){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const SIZE = 320, side = Math.min(img.naturalWidth, img.naturalHeight);
+      const sx = (img.naturalWidth - side) / 2;
+      const sy = (img.naturalHeight - side) * 0.35;
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = SIZE;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, SIZE, SIZE);
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
+      URL.revokeObjectURL(url);
+      resolve(cv.toDataURL('image/jpeg', 0.84));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('formato non supportato')); };
+    img.src = url;
+  });
+}
+
+function permutations(arr){
+  if(arr.length <= 1 || arr.length > 5) return [arr];
+  return arr.flatMap((x, i) => permutations(arr.slice(0, i).concat(arr.slice(i + 1))).map(rest => [x].concat(rest)));
+}
+function matchFileToPerson(fileName){
+  const k = normKey(fileName.replace(/\.[^.]+$/, '').replace(/[_\-.]+/g, ' '));
+  if(!k) return null;
+  const flat = k.replace(/ /g, ''), toks = k.split(' ');
+  let hits = C.persone.filter(p => permutations(normKey(p.nome).split(' ')).some(o => o.join('') === flat));
+  if(hits.length === 1) return hits[0];
+  hits = C.persone.filter(p => { const pt = normKey(p.nome).split(' '); return toks.every(t => pt.includes(t)); });
+  return hits.length === 1 ? hits[0] : null;
+}
+
+function replaceCard(p){
+  const old = cardFor(p.id); if(!old) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = personCardHtml(p).trim();
+  old.replaceWith(tmp.firstElementChild);
+}
+function setPhoto(p, data){
+  PHOTOS[normKey(p.nome)] = data;
+  PHOTO_DIRTY = true;
+  replaceCard(p);
+  updatePhotoBar();
+}
+function updatePhotoBar(){
+  const n = C.persone.filter(p => photoOf(p)).length;
+  $('photoCount').textContent = `${n} di ${C.persone.length} con foto`;
+  $('photoSave').innerHTML = `${icon('download')} Scarica foto-team.js`;
+}
+function renderUnmatched(){
+  const box = $('photoUnmatched');
+  if(!PHOTO_UNMATCHED.length){ box.innerHTML = ''; return; }
+  const opts = C.persone.slice().sort((a, b) => a.nome.localeCompare(b.nome, 'it'))
+    .map(p => `<option value="${esc(p.id)}">${esc(p.nome)}</option>`).join('');
+  box.innerHTML = `<p style="margin:14px 0 0"><strong>Foto da assegnare</strong> — non ho riconosciuto il nome di questi file: scegli tu la persona.</p>
+    <div class="ph-list">${PHOTO_UNMATCHED.map((u, i) => `<div class="ph-row"><img src="${u.data}" alt=""><span>${esc(u.name)}</span>
+      <select data-i="${i}"><option value="">Assegna a…</option>${opts}</select></div>`).join('')}</div>`;
+  box.querySelectorAll('select').forEach(sel => sel.onchange = () => {
+    const p = C.persone.find(x => x.id === sel.value); if(!p) return;
+    const u = PHOTO_UNMATCHED[+sel.dataset.i];
+    PHOTO_UNMATCHED = PHOTO_UNMATCHED.filter(x => x !== u);
+    setPhoto(p, u.data);
+    renderUnmatched();
+  });
+}
+function downloadPhotos(){
+  const keys = Object.keys(PHOTOS).sort();
+  const body = keys.map(k => `  ${JSON.stringify(k)}: ${JSON.stringify(PHOTOS[k])}`).join(',\n');
+  const txt = `/* Foto del team per il form Mappatura Competenze.\n   Generato da index.html?foto=1 il ${new Date().toLocaleString('it-IT')} (${keys.length} foto).\n   Va messo nella cartella del repository, accanto a index.html. */\nwindow.FOTO_TEAM = {\n${body}\n};\n`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([txt], { type:'text/javascript' }));
+  a.download = 'foto-team.js';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  PHOTO_DIRTY = false;
+}
+
+/* ------------------ 2. QUESTIONARIO --------------------------------- */
+async function startForm(person, lastPromise){
+  let last = { found:false };
+  try{
+    if(!person.isNew) last = await (lastPromise || api.last(person.id));
+  }catch(err){
+    alert('Non è stato possibile recuperare le tue risposte precedenti: ' + err.message);
+    return false;
+  }
 
   const prev = last.found ? last.row : null;
   S = { person, prev, v: valuesFromRow(prev), confirmed:{}, snap:{}, moved:[] };
@@ -295,9 +918,12 @@ async function startForm(person){
     notes.push(`<div class="note ok">Benvenuto/a ${esc(person.nome)}: compila tutte le sezioni e conferma ciascuna prima di inviare.</div>`);
   }
   $('formNotes').innerHTML = notes.join('');
+  $('whoBar').innerHTML = `${avatarHtml(person, 'wb-photo')}<div><span class="wb-label">Stai compilando come</span>
+    <strong>${esc(person.nome)}</strong>${person.ruolo ? `<span class="wb-role"> · ${esc(person.ruolo)}</span>` : ''}</div>`;
   renderSections();
   $('submitBar').classList.add('show');
   show('scForm');
+  return true;
 }
 
 function rilevazioneLabel(r){
@@ -392,21 +1018,62 @@ function sectionErrors(key){
 /* ------------------------- RENDER ----------------------------------- */
 function renderSections(){
   $('sections').innerHTML = SECTIONS.map(s => `
-    <section class="card" id="sec-${s.key}">
-      <div class="sec-head"><h2>${esc(s.title)}</h2><span class="badge" id="badge-${s.key}"></span></div>
-      <div id="body-${s.key}"></div>
-      <div class="sec-errors" id="err-${s.key}"></div>
-      <label class="sec-confirm" id="conf-${s.key}">
-        <input type="checkbox" data-sec="${s.key}">
-        <span>Confermo che questa sezione è aggiornata</span>
-      </label>
+    <section class="card sec" id="sec-${s.key}">
+      <div class="sec-head" data-sec-toggle="${s.key}">
+        <span class="sec-ico">${icon(SECTION_ICONS[s.key])}</span>
+        <div class="sec-title">
+          <h2>${esc(s.title)}</h2>
+          <div class="sec-meta"><span class="sec-done">${icon('check')}Confermata</span><span class="badge" id="badge-${s.key}"></span></div>
+        </div>
+        <button type="button" class="sec-toggle" aria-expanded="true" aria-controls="secbody-${s.key}" title="Comprimi la sezione">${icon('chevron')}</button>
+      </div>
+      <div class="sec-collapse" id="secbody-${s.key}"><div class="sec-inner"><div class="sec-pad">
+        <div id="body-${s.key}"></div>
+        <div class="sec-errors" id="err-${s.key}"></div>
+        <label class="sec-confirm" id="conf-${s.key}">
+          <input type="checkbox" data-sec="${s.key}">
+          <span>Confermo che questa sezione è aggiornata</span>
+        </label>
+      </div></div></div>
     </section>`).join('');
   document.querySelectorAll('.sec-confirm input').forEach(cb => {
-    cb.onchange = () => { S.confirmed[cb.dataset.sec] = cb.checked; refresh(); };
+    cb.onchange = () => {
+      S.confirmed[cb.dataset.sec] = cb.checked; refresh();
+      if(cb.checked) setTimeout(() => { collapseSection(cb.dataset.sec, true); goToNextSection(cb.dataset.sec); }, 280);
+    };
   });
+  document.querySelectorAll('[data-sec-toggle]').forEach(h => {
+    h.onclick = () => collapseSection(h.dataset.secToggle, !$('sec-' + h.dataset.secToggle).classList.contains('collapsed'));
+  });
+  $('progress').onclick = (e) => {
+    const a = e.target.closest('a[href^="#sec-"]'); if(!a) return;
+    e.preventDefault();
+    const key = a.getAttribute('href').slice(5);
+    collapseSection(key, false);
+    scrollToSection(key);
+  };
   renderAnagrafica(); renderProgetti(); renderCompetenze(); renderStrumenti(); renderInteressi();
   $('submitBtn').onclick = submit;
   refresh();
+}
+
+function collapseSection(key, collapsed){
+  const sec = $('sec-' + key); if(!sec) return;
+  sec.classList.toggle('collapsed', collapsed);
+  const btn = sec.querySelector('.sec-toggle');
+  btn.setAttribute('aria-expanded', String(!collapsed));
+  btn.title = collapsed ? 'Espandi la sezione' : 'Comprimi la sezione';
+}
+function scrollToSection(key){
+  const el = $('sec-' + key);
+  if(el) el.scrollIntoView({ behavior: REDUCED_MOTION ? 'auto' : 'smooth', block:'start' });
+}
+function goToNextSection(key){
+  const i = SECTIONS.findIndex(s => s.key === key);
+  const next = SECTIONS.slice(i + 1).concat(SECTIONS.slice(0, i)).find(s => !S.confirmed[s.key]);
+  if(!next) return;
+  collapseSection(next.key, false);
+  setTimeout(() => scrollToSection(next.key), REDUCED_MOTION ? 0 : 430);
 }
 
 function changed(key){ refresh(key); }
@@ -429,6 +1096,7 @@ function refresh(){
     cb.disabled = errs.length > 0;
     $('conf-' + s.key).classList.toggle('done', S.confirmed[s.key]);
     const ok = S.confirmed[s.key] && !errs.length;
+    $('sec-' + s.key).classList.toggle('is-confirmed', ok);
     if(!ok) allOk = false;
     prog.push(`<a href="#sec-${s.key}" class="${ok ? 'done' : ''}">${ok ? '✓ ' : ''}${esc(s.title)}</a>`);
   });
@@ -470,21 +1138,30 @@ function renderAnagrafica(){
   upd();
 }
 
-/* Progetti */
+/* Progetti, raggruppati per cliente principale (la parte prima di " - ") */
+function clientOf(p){ const i = p.indexOf(' - '); return i > 0 ? p.slice(0, i).trim() : 'Altri progetti'; }
+function projectLabel(p){ const i = p.indexOf(' - '); return i > 0 ? p.slice(i + 3).trim() : p; }
+
 function renderProgetti(){
   $('body-progetti').innerHTML = `
-    <p class="sub">Seleziona i progetti dall'elenco. Se un progetto su cui lavoravi è terminato, deselezionalo dai progetti attuali: verrà spostato tra quelli precedenti.</p>
-    <h3>Progetti su cui lavori attualmente</h3>
-    <input type="text" class="search" id="qAtt" placeholder="Cerca progetto…">
-    <div class="chips" id="chipsAtt"></div>
-    <div class="moved" id="movedNote"></div>
-    <label class="f" for="fAttAltri">Altri progetti attuali non presenti nell'elenco (uno per riga)</label>
-    <textarea id="fAttAltri" placeholder="Es. CLIENTE - Nome progetto"></textarea>
-    <h3>Progetti su cui hai lavorato in precedenza</h3>
-    <input type="text" class="search" id="qPre" placeholder="Cerca progetto…">
-    <div class="chips" id="chipsPre"></div>
-    <label class="f" for="fPreAltri">Altri progetti precedenti non presenti nell'elenco (uno per riga)</label>
-    <textarea id="fPreAltri"></textarea>`;
+    <p class="sub">Seleziona i progetti dall'elenco, raggruppati per cliente. Se un progetto su cui lavoravi è terminato, toglilo dai progetti attuali: verrà spostato tra quelli precedenti.</p>
+    <div class="proj-block">
+      <h3>Progetti su cui lavori attualmente</h3>
+      <div class="sel-box" id="selAtt"></div>
+      <div class="search proj-search">${icon('search')}<input type="text" id="qAtt" placeholder="Cerca per cliente o progetto…" autocomplete="off"></div>
+      <div class="pgroups" id="chipsAtt"></div>
+      <div class="moved" id="movedNote"></div>
+      <label class="f" for="fAttAltri">Altri progetti attuali non presenti nell'elenco (uno per riga)</label>
+      <textarea id="fAttAltri" placeholder="Es. CLIENTE - Nome progetto"></textarea>
+    </div>
+    <div class="proj-block">
+      <h3>Progetti su cui hai lavorato in precedenza</h3>
+      <div class="sel-box" id="selPre"></div>
+      <div class="search proj-search">${icon('search')}<input type="text" id="qPre" placeholder="Cerca per cliente o progetto…" autocomplete="off"></div>
+      <div class="pgroups" id="chipsPre"></div>
+      <label class="f" for="fPreAltri">Altri progetti precedenti non presenti nell'elenco (uno per riga)</label>
+      <textarea id="fPreAltri"></textarea>
+    </div>`;
   $('fAttAltri').value = S.v.progetti_attuali_altri;
   $('fPreAltri').value = S.v.progetti_precedenti_altri;
   $('fAttAltri').oninput = () => { S.v.progetti_attuali_altri = $('fAttAltri').value; changed('progetti'); };
@@ -497,15 +1174,35 @@ function drawProjectChips(){
   const v = S.v;
   // Catalogo + eventuali progetti già selezionati non più a catalogo
   const all = Array.from(new Set([...C.progetti, ...v.progetti_attuali, ...v.progetti_precedenti])).sort((a,b) => a.localeCompare(b,'it'));
-  const draw = (boxId, q, field) => {
+  const draw = (boxId, selId, q, field, emptyText) => {
     const sel = new Set(v[field]);
-    const ql = q.trim().toLowerCase();
-    const items = all.filter(p => sel.has(p) || !ql || p.toLowerCase().includes(ql));
-    $(boxId).innerHTML = items.map(p => `<button type="button" class="chip ${sel.has(p) ? 'on' : ''}" data-p="${esc(p)}">${esc(p)}</button>`).join('') || '<span class="hint">Nessun progetto trovato.</span>';
+    const toks = normKey(q).split(' ').filter(Boolean);
+    $(selId).innerHTML = v[field].length
+      ? `<span class="sel-lbl">Selezionati (${v[field].length})</span>` +
+        v[field].slice().sort((a,b) => a.localeCompare(b,'it')).map(p =>
+          `<button type="button" class="sel-chip" data-p="${esc(p)}" title="Togli">${esc(p)}${icon('x')}</button>`).join('')
+      : `<span class="sel-lbl muted">${emptyText}</span>`;
+    const groups = new Map();
+    all.forEach(p => {
+      const key = normKey(p);
+      if(toks.length && !toks.every(t => key.includes(t))) return;
+      const c = clientOf(p);
+      if(!groups.has(c)) groups.set(c, []);
+      groups.get(c).push(p);
+    });
+    const clients = Array.from(groups.keys()).sort((a,b) => a.localeCompare(b,'it'));
+    $(boxId).innerHTML = clients.length ? clients.map(c => {
+      const items = groups.get(c), n = items.filter(p => sel.has(p)).length;
+      return `<div class="pgroup${n ? ' has-sel' : ''}">
+        <div class="pgroup-head">${icon('building')}<span>${esc(c)}</span>${n ? `<span class="n">${n}</span>` : ''}</div>
+        <div class="chips">${items.map(p => `<button type="button" class="chip ${sel.has(p) ? 'on' : ''}" data-p="${esc(p)}" title="${esc(p)}">${sel.has(p) ? icon('check') : ''}${esc(projectLabel(p))}</button>`).join('')}</div>
+      </div>`;
+    }).join('') : '<p class="hint">Nessun progetto trovato: se manca, aggiungilo nel campo qui sotto.</p>';
     $(boxId).querySelectorAll('.chip').forEach(b => b.onclick = () => toggleProject(field, b.dataset.p));
+    $(selId).querySelectorAll('.sel-chip').forEach(b => b.onclick = () => toggleProject(field, b.dataset.p));
   };
-  draw('chipsAtt', $('qAtt').value, 'progetti_attuali');
-  draw('chipsPre', $('qPre').value, 'progetti_precedenti');
+  draw('chipsAtt', 'selAtt', $('qAtt').value, 'progetti_attuali', 'Nessun progetto attuale selezionato');
+  draw('chipsPre', 'selPre', $('qPre').value, 'progetti_precedenti', 'Nessun progetto precedente selezionato');
   $('movedNote').textContent = S.moved.length ? `Spostati tra i progetti precedenti: ${S.moved.join(', ')}` : '';
 }
 function toggleProject(field, p){
@@ -524,40 +1221,47 @@ function toggleProject(field, p){
   changed('progetti');
 }
 
-/* Scala di livello riutilizzabile */
+/* Scala di livello riutilizzabile: numero + nome del livello, verde crescente */
+function levelOptions(withZero){
+  const kind = withZero ? 'competenze' : 'strumenti';
+  const zero = withZero ? {v:0, l:'Nessuna'} : {v:null, l:'Non uso'};
+  return [zero].concat(C.livelli).map(o => ({ ...o, d: LEVEL_HINTS[kind][o.v ?? 0] || '' }));
+}
 function segHtml(value, withZero){
-  const opts = (withZero ? [{v:0, l:'Nessuna'}] : [{v:null, l:'Non uso'}]).concat(C.livelli);
-  return `<div class="seg">${opts.map(o => {
+  return `<div class="seg" role="radiogroup">${levelOptions(withZero).map(o => {
     const on = value === o.v || (o.v === null && (value === null || value === 0));
-    return `<button type="button" data-v="${o.v === null ? '' : o.v}" title="${esc(o.l)}" class="${on ? 'on' : ''} ${o.v === 0 || o.v === null ? 'zero' : ''}">${o.v ? o.v : '—'}</button>`;
+    const tip = (o.v ? o.v + ' · ' : '') + o.l + (o.d ? ' — ' + o.d : '');
+    return `<button type="button" role="radio" aria-checked="${on}" data-v="${o.v === null ? '' : o.v}" title="${esc(tip)}" class="${on ? 'on' : ''} ${o.v === 0 || o.v === null ? 'zero' : ''}"><b>${o.v ? o.v : '—'}</b><small>${esc(o.l)}</small></button>`;
   }).join('')}</div>`;
 }
 function bindSeg(container, onPick){
   container.querySelectorAll('.seg').forEach(seg => {
     seg.querySelectorAll('button').forEach(b => b.onclick = () => {
-      seg.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+      seg.querySelectorAll('button').forEach(x => { x.classList.remove('on'); x.setAttribute('aria-checked', 'false'); });
       b.classList.add('on');
+      b.setAttribute('aria-checked', 'true');
       onPick(seg, b.dataset.v === '' ? null : +b.dataset.v);
     });
   });
 }
-function legendHtml(zeroLabel){
-  return `<div class="legend"><span><b>—</b> ${zeroLabel}</span>${C.livelli.map(l => `<span><b>${l.v}</b> ${esc(l.l)}</span>`).join('')}</div>`;
+function legendHtml(withZero){
+  return `<div class="lv-legend">${levelOptions(withZero).map(o => `
+    <div class="lv-card" data-v="${o.v === null ? '' : o.v}"><strong><span>${o.v ? o.v : '—'}</span>${esc(o.l)}</strong><p>${esc(o.d)}</p></div>`).join('')}</div>`;
 }
 
 /* Competenze */
 function renderCompetenze(){
   const v = S.v;
   $('body-competenze').innerHTML = `
-    <p class="sub">Valuta il tuo livello in ciascuna competenza.</p>
-    ${legendHtml('Nessuna esperienza')}
+    <p class="sub">Valuta il tuo livello in ciascuna competenza. Se hai un dubbio, passa il mouse su un livello per rileggerne il significato.</p>
+    ${legendHtml(true)}
     ${C.aree.map(a => `<div class="area"><div class="area-title">${esc(a.nome)}</div>
       ${a.comps.map(c => `<div class="item" data-col="${esc(c.col)}"><span class="lbl">${esc(c.nome)}</span>${segHtml(v.comp[c.col], true)}</div>`).join('')}
     </div>`).join('')}
     <h3>Altre competenze</h3>
     <p class="hint">Competenze non presenti nell'elenco, con il relativo livello.</p>
     <div id="compAltre"></div>
-    <button type="button" class="btn ghost small" id="addComp">+ Aggiungi competenza</button>`;
+    <button type="button" class="btn ghost small" id="addComp">${icon('plus')} Aggiungi competenza</button>`;
   bindSeg($('body-competenze'), (seg, val) => {
     const item = seg.closest('.item'); v.comp[item.dataset.col] = val;
     item.classList.remove('missing');
@@ -571,8 +1275,8 @@ function renderStrumenti(){
   const v = S.v;
   $('body-strumenti').innerHTML = `
     <p class="sub">Indica il livello per gli strumenti che usi; lascia "—" per quelli che non usi.</p>
-    ${legendHtml('Non uso')}
-    <input type="text" class="search" id="qTool" placeholder="Cerca strumento…">
+    ${legendHtml(false)}
+    <div class="search proj-search">${icon('search')}<input type="text" id="qTool" placeholder="Cerca strumento…" autocomplete="off"></div>
     ${C.categorie.map((k, i) => `<details class="cat" data-cat="${i}">
       <summary><span>${esc(k.nome)}</span><span class="cnt"></span></summary>
       ${k.tools.map(t => `<div class="item" data-col="${esc(t.col)}" data-name="${esc(t.nome.toLowerCase())}"><span class="lbl">${esc(t.nome)}</span>${segHtml(v.tool[t.col], false)}</div>`).join('')}
@@ -580,7 +1284,7 @@ function renderStrumenti(){
     <h3>Altri strumenti</h3>
     <p class="hint">Strumenti, software o piattaforme non presenti nell'elenco.</p>
     <div id="toolAltri"></div>
-    <button type="button" class="btn ghost small" id="addTool">+ Aggiungi strumento</button>`;
+    <button type="button" class="btn ghost small" id="addTool">${icon('plus')} Aggiungi strumento</button>`;
   const counts = () => document.querySelectorAll('#body-strumenti details.cat').forEach(d => {
     const k = C.categorie[+d.dataset.cat];
     const n = k.tools.filter(t => v.tool[t.col]).length;
@@ -626,16 +1330,21 @@ function freeRows(boxId, addId, arr, secKey, placeholder){
   draw();
 }
 
-/* Interessi */
+/* Interessi: riquadri che si illuminano quando selezionati */
 function renderInteressi(){
   const v = S.v;
   $('body-interessi').innerHTML = `
-    <p class="sub">Quali aree vorresti approfondire o mettere maggiormente in pratica?</p>
-    <div class="checks">${C.aree.map(a => `<label><input type="checkbox" data-a="${esc(a.codice)}" ${v.int[a.codice] ? 'checked' : ''}> ${esc(a.nome)}</label>`).join('')}</div>
+    <p class="sub">Quali aree vorresti approfondire o mettere maggiormente in pratica? Puoi sceglierne più di una.</p>
+    <div class="checks">${C.aree.map(a => `<button type="button" class="int-opt ${v.int[a.codice] ? 'on' : ''}" data-a="${esc(a.codice)}" aria-pressed="${!!v.int[a.codice]}"><span class="tick">${icon('check')}</span><span>${esc(a.nome)}</span></button>`).join('')}</div>
     <label class="f" for="fIntAltro">Altro (uno per riga)</label>
     <textarea id="fIntAltro"></textarea>`;
   $('fIntAltro').value = v.interessi_altro;
-  $('body-interessi').querySelectorAll('input[type=checkbox]').forEach(cb => cb.onchange = () => { v.int[cb.dataset.a] = cb.checked; changed('interessi'); });
+  $('body-interessi').querySelectorAll('.int-opt').forEach(b => b.onclick = () => {
+    v.int[b.dataset.a] = !v.int[b.dataset.a];
+    b.classList.toggle('on', v.int[b.dataset.a]);
+    b.setAttribute('aria-pressed', String(v.int[b.dataset.a]));
+    changed('interessi');
+  });
   $('fIntAltro').oninput = () => { v.interessi_altro = $('fIntAltro').value; changed('interessi'); };
 }
 
@@ -656,7 +1365,7 @@ async function submit(){
     $('doneText').textContent = `Le risposte di ${S.person.nome} sono state registrate per la rilevazione ${res.rilevazione}.`;
     $('submitBar').classList.remove('show');
     if(S.person.isNew && res.id){ C.persone.push({ id:res.id, nome:S.person.nome, ruolo:S.v.ruolo }); }
-    $('doneRestart').onclick = () => { $('whoSelect').value = ''; $('newName').value = ''; $('newWrap').hidden = true; $('whoNext').disabled = true; show('scWho'); };
+    $('doneRestart').onclick = () => { buildWho(); show('scWho'); };
     show('scDone');
   }catch(err){
     alert('Invio non riuscito: ' + err.message + '\nLe tue risposte sono ancora qui: riprova tra poco.');
@@ -676,7 +1385,12 @@ function demoApi(){
   const persone = [
     { id:'P001', nome:'Anna Bianchi (demo)' },
     { id:'P002', nome:'Luca Verdi (demo)' },
-    { id:'P003', nome:'Sara Neri (demo)' }
+    { id:'P003', nome:'Sara Neri (demo)', ruolo:'Senior Consultant' },
+    { id:'P004', nome:'Marco Gialli (demo)', ruolo:'Manager' },
+    { id:'P005', nome:'Giulia Rosa (demo)', ruolo:'Analyst' },
+    { id:'P006', nome:'Paolo Celeste (demo)', ruolo:'Consultant' },
+    { id:'P007', nome:'Elena Viola (demo)', ruolo:'Stagista' },
+    { id:'P008', nome:'Davide Ocra (demo)', ruolo:'Analyst' }
   ];
   const rows = [
     { rilevazione:'baseline', id:'P001', nome:'Anna Bianchi (demo)', ruolo:'Consultant', data_ingresso:'2023-09', anni_esperienza:'4',
@@ -694,7 +1408,7 @@ function demoApi(){
   return {
     init: () => wait({ ok:true, rilevazione_corrente:cur, ruoli:['Stagista','Analyst','Consultant','Senior Consultant','Manager','Senior Manager'],
       livelli:['1 Base','2 Discreto','3 Autonomo','4 Avanzato'], competenze, strumenti, progetti,
-      persone: persone.map(p => ({ ...p, ruolo:(lastOf(p.id) || {}).ruolo || '' })) }),
+      persone: persone.map(p => ({ id:p.id, nome:p.nome, ruolo:(lastOf(p.id) || {}).ruolo || p.ruolo || '' })) }),
     last: (id) => { const r = lastOf(id); return wait(r ? { ok:true, found:true, row:r, gia_compilato_in_rilevazione:r.rilevazione === cur } : { ok:true, found:false }); },
     submit: (body) => {
       let id = body.id;
