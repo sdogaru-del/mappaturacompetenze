@@ -17,8 +17,9 @@
     schermate:      scLoading, scWho, scForm, scDone
     pagina iniziale: whoHead, whoTools, whoSearch, whoCount, whoEmpty,
                     peopleWrap, peopleGrid, pickPanel
+    accesso:        accessBox, accessKey, accessGo
     modalità foto:  photoBar, photoCount, photoBulk, photoBulkBtn, photoOne,
-                    photoSave, photoUnmatched
+                    photoKey, photoSave, photoStatus, photoUnmatched
     questionario:   whoBar, formNotes, sections, submitBar, progress, submitBtn
     fine:           doneText, doneRestart
     intestazione:   topSub, demoFlag
@@ -30,8 +31,9 @@
   Attributi data-...: non toccarli (data-id, data-q, data-col, data-sec,
     data-sec-toggle, data-p, data-v, data-a, data-cat, data-name, data-i).
 
-  FOTO: stanno nel file foto-team.js, accanto a index.html. Per crearlo o
-  aggiornarlo apri index.html?foto=1 (vedi ISTRUZIONI nel Project).
+  FOTO: stanno nel foglio "Foto" del Google Sheet, non nel repository.
+  Si caricano da index.html?foto=1&k=CODICE (vedi ISTRUZIONI nel Project).
+  ACCESSO: il link da condividere è index.html?k=CODICE (codice_accesso in Config).
   ==========================================================================
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -141,6 +143,10 @@ textarea{min-height:76px;resize:vertical}
 .photo-bar strong{font-size:15px}
 .photo-bar p{margin:6px 0 12px;font-size:13.5px;color:var(--ink-soft)}
 .photo-bar code{background:#F5E9D9;padding:1px 5px;border-radius:4px;font-size:12.5px}
+.photo-status{margin:10px 0 0 !important;font-weight:600}
+.photo-status.ok{color:var(--teal-deep)} .photo-status.err{color:var(--red)}
+.access-box{max-width:460px;margin:10px auto;text-align:center}
+.access-box .row{margin-top:14px}
 .photo-count{display:inline-block;margin-left:8px;font-size:12.5px;font-weight:600;color:#8A5418;background:var(--amber-soft);padding:2px 10px;border-radius:999px}
 .ph-list{display:grid;gap:8px;margin-top:12px}
 .ph-row{display:flex;align-items:center;gap:10px;font-size:13px}
@@ -336,11 +342,13 @@ details.cat summary .cnt:empty{display:none}
   <div class="screen" id="scWho">
     <div class="photo-bar" id="photoBar" hidden>
       <strong>Modalità foto</strong><span class="photo-count" id="photoCount"></span>
-      <p>Clicca su una scheda (o trascinaci sopra un'immagine) per caricare la foto di quella persona, oppure caricane tante insieme: vengono abbinate dal nome del file, per esempio <code>mario-rossi.jpg</code> o <code>Rossi Mario.png</code>. Quando hai finito scarica <code>foto-team.js</code> e mettilo nella cartella del repository, accanto a <code>index.html</code>.</p>
+      <p>Clicca su una scheda (o trascinaci sopra un'immagine) per caricare la foto di quella persona, oppure caricane tante insieme: vengono abbinate dal nome del file, per esempio <code>mario-rossi.jpg</code> o <code>Rossi Mario.png</code>. Le foto vengono salvate nel foglio <code>Foto</code> del Google Sheet: nel repository non finisce nulla.</p>
       <div class="actions" style="margin-top:0">
         <button class="btn ghost" id="photoBulkBtn" type="button"></button>
-        <button class="btn" id="photoSave" type="button"></button>
+        <input type="password" id="photoKey" placeholder="Codice foto (da Config)" autocomplete="off" style="width:210px">
+        <button class="btn" id="photoSave" type="button" disabled></button>
       </div>
+      <p class="photo-status" id="photoStatus"></p>
       <input type="file" id="photoBulk" accept="image/*" multiple hidden>
       <input type="file" id="photoOne" accept="image/*" hidden>
       <div id="photoUnmatched"></div>
@@ -384,9 +392,6 @@ details.cat summary .cnt:empty{display:none}
   <button class="btn" id="submitBtn" disabled>Invia</button>
 </div></div>
 
-<!-- Foto del team (file facoltativo, generato da index.html?foto=1) -->
-<script src="foto-team.js"></script>
-
 <script>
 /* =====================================================================
    CONFIGURAZIONE
@@ -417,6 +422,14 @@ const LEVEL_HINTS = {
 };
 
 /* ===================================================================== */
+// Codice di accesso: arriva dal link (?k=...) e viene ricordato in questo browser.
+const ACCESS_KEY = (() => {
+  const fromUrl = new URLSearchParams(location.search).get('k');
+  try{
+    if(fromUrl) localStorage.setItem('mappatura_k', fromUrl);
+    return fromUrl || localStorage.getItem('mappatura_k') || '';
+  }catch(e){ return fromUrl || ''; }
+})();
 const DEMO = !SCRIPT_URL || new URLSearchParams(location.search).has('demo');
 const PHOTO_MODE = new URLSearchParams(location.search).has('foto');
 const NEW_PERSON = '__new__';
@@ -464,11 +477,11 @@ function normKey(s){
 }
 
 /* --------------------------- FOTO ----------------------------------- */
-const PHOTOS = Object.assign({}, window.FOTO_TEAM || {});
+const PHOTOS = {};            // id persona -> immagine, letto dal foglio Foto
 const AVATAR_COLORS = [['#DCEEE9','#1D5A4E'],['#F5E5D3','#8A5418'],['#E3E7FB','#3A4BB8'],['#F6E1DB','#8F3520'],
   ['#E4EEDF','#3F6B44'],['#F4ECD3','#7D6216'],['#ECE3F3','#6A3F7C'],['#DDEEF4','#2A6F8C']];
 function hashStr(s){ let h = 0; for(const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; }
-function photoOf(p){ return PHOTOS[normKey(p.nome)] || ''; }
+function photoOf(p){ return PHOTOS[p.id] || ''; }
 function initials(name){
   const t = String(name || '').replace(/\(.*?\)/g, '').trim().split(/\s+/).filter(Boolean);
   return ((t[0] || '?')[0] + (t.length > 1 ? t[t.length - 1][0] : '')).toUpperCase();
@@ -480,19 +493,25 @@ function avatarHtml(p, cls){
 }
 
 /* --------------------------- API ------------------------------------ */
+const KQ = '&k=' + encodeURIComponent(ACCESS_KEY);
 const realApi = {
-  async init(){ return getJson(SCRIPT_URL + '?action=init'); },
-  async last(id){ return getJson(SCRIPT_URL + '?action=last&id=' + encodeURIComponent(id)); },
+  async init(){ return getJson(SCRIPT_URL + '?action=init' + KQ); },
+  async last(id){ return getJson(SCRIPT_URL + '?action=last&id=' + encodeURIComponent(id) + KQ); },
+  async photos(){ return getJson(SCRIPT_URL + '?action=foto' + KQ); },
   async submit(body){
     // text/plain evita la richiesta preliminare CORS che Apps Script non gestisce
-    const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body) });
+    const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ ...body, k: ACCESS_KEY }) });
+    return res.json();
+  },
+  async savePhotos(fotos, fk){
+    const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'foto', fotos, fk, k: ACCESS_KEY }) });
     return res.json();
   }
 };
 async function getJson(url){
   const res = await fetch(url);
   const j = await res.json();
-  if(!j.ok) throw new Error(j.error || 'Errore del server');
+  if(!j.ok){ const err = new Error(j.error || 'Errore del server'); err.auth = !!j.auth; throw err; }
   return j;
 }
 
@@ -505,6 +524,7 @@ async function boot(){
   try{
     C = await api.init();
   }catch(err){
+    if(err.auth){ showAccessBox(); return; }
     $('scLoading').innerHTML = `<div class="card"><div class="note err">Impossibile caricare il questionario: ${esc(err.message)}. Riprova più tardi.</div></div>`;
     return;
   }
@@ -524,6 +544,38 @@ async function boot(){
   if(C.rilevazione_corrente) $('topSub').textContent = `Rilevazione ${C.rilevazione_corrente} — aggiorna il tuo profilo di esperienze, competenze e strumenti.`;
   buildWho();
   show('scWho');
+  loadPhotos();
+}
+
+/* Link senza codice (o con codice sbagliato): chiede il codice ricevuto */
+function showAccessBox(){
+  $('scLoading').innerHTML = `<div class="card access-box" id="accessBox">
+    <h2>Serve il link completo</h2>
+    <p class="sub">Per aprire il questionario usa il link che hai ricevuto: contiene un codice di accesso. In alternativa inserisci qui il codice.</p>
+    <div class="row"><input type="text" id="accessKey" placeholder="Codice di accesso" autocomplete="off"><button class="btn" id="accessGo" type="button">Entra</button></div>
+  </div>`;
+  const go = () => {
+    const k = $('accessKey').value.trim(); if(!k) return;
+    const u = new URL(location.href); u.searchParams.set('k', k); location.href = u.toString();
+  };
+  $('accessGo').onclick = go;
+  $('accessKey').onkeydown = (e) => { if(e.key === 'Enter') go(); };
+}
+
+/* Le foto arrivano dopo l'elenco: intanto le schede mostrano le iniziali */
+async function loadPhotos(){
+  try{
+    const res = await api.photos();
+    Object.assign(PHOTOS, res.fotos || {});
+  }catch(err){ return; }
+  // cambia solo l'immagine, così ricerca e scheda selezionata restano come sono
+  C.persone.forEach(p => {
+    const card = PHOTOS[p.id] && cardFor(p.id);
+    if(PHOTO_MODE && card) replaceCard(p);
+    else if(card) card.querySelector('.pc-photo').outerHTML = avatarHtml(p, 'pc-photo');
+  });
+  if(S && S.person && PHOTOS[S.person.id]){ const el = $('whoBar').querySelector('.wb-photo'); if(el) el.outerHTML = avatarHtml(S.person, 'wb-photo'); }
+  if(PHOTO_MODE) updatePhotoBar();
 }
 
 function parseLevels(list){
@@ -620,7 +672,7 @@ function onGridClick(e){
   if(PHOTO_MODE){
     if(card.dataset.id === NEW_PERSON) return;
     const p = C.persone.find(x => x.id === card.dataset.id);
-    if(e.target.closest('.pc-del')){ delete PHOTOS[normKey(p.nome)]; PHOTO_DIRTY = true; replaceCard(p); updatePhotoBar(); return; }
+    if(e.target.closest('.pc-del')){ delete PHOTOS[p.id]; PHOTO_CHANGES[p.id] = ''; replaceCard(p); updatePhotoBar(); return; }
     PHOTO_TARGET = p;
     $('photoOne').click();
     return;
@@ -762,14 +814,15 @@ async function unpick(opts){
 }
 
 /* ------------------ MODALITÀ FOTO (index.html?foto=1) ---------------- */
-let PHOTO_DIRTY = false, PHOTO_TARGET = null, PHOTO_UNMATCHED = [], PHOTO_BOUND = false;
+let PHOTO_CHANGES = {}, PHOTO_TARGET = null, PHOTO_UNMATCHED = [], PHOTO_BOUND = false;
+const photoDirty = () => Object.keys(PHOTO_CHANGES).length > 0;
 
 function initPhotoMode(){
   $('scWho').classList.add('photo-mode');
   $('photoBar').hidden = false;
   $('photoBulkBtn').innerHTML = `${icon('upload')} Carica più foto insieme`;
   $('photoBulkBtn').onclick = () => $('photoBulk').click();
-  $('photoSave').onclick = downloadPhotos;
+  $('photoSave').onclick = savePhotosToSheet;
   $('photoBulk').onchange = async (e) => {
     const files = Array.from(e.target.files); e.target.value = '';
     const errors = [];
@@ -806,20 +859,21 @@ function initPhotoMode(){
   if(!PHOTO_BOUND){
     document.addEventListener('dragover', (e) => e.preventDefault());
     document.addEventListener('drop', (e) => e.preventDefault());
-    window.addEventListener('beforeunload', (e) => { if(PHOTO_DIRTY){ e.preventDefault(); e.returnValue = ''; } });
+    window.addEventListener('beforeunload', (e) => { if(photoDirty()){ e.preventDefault(); e.returnValue = ''; } });
     PHOTO_BOUND = true;
   }
   renderUnmatched();
   updatePhotoBar();
 }
 
-/* Ritaglia al centro un quadrato (leggermente spostato verso l'alto, dove di solito c'è il viso) e lo riduce a 320 px */
+/* Ritaglia al centro un quadrato (leggermente spostato verso l'alto, dove di solito c'è il viso) e lo riduce a 256 px.
+   La qualità scende finché l'immagine sta in una cella dello Sheet (max 50.000 caratteri). */
 function fileToPhoto(file){
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
-      const SIZE = 320, side = Math.min(img.naturalWidth, img.naturalHeight);
+      const SIZE = 256, side = Math.min(img.naturalWidth, img.naturalHeight);
       const sx = (img.naturalWidth - side) / 2;
       const sy = (img.naturalHeight - side) * 0.35;
       const cv = document.createElement('canvas');
@@ -829,7 +883,9 @@ function fileToPhoto(file){
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
       URL.revokeObjectURL(url);
-      resolve(cv.toDataURL('image/jpeg', 0.84));
+      let q = 0.85, data = cv.toDataURL('image/jpeg', q);
+      while(data.length > 45000 && q > 0.35){ q -= 0.1; data = cv.toDataURL('image/jpeg', q); }
+      resolve(data);
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('formato non supportato')); };
     img.src = url;
@@ -854,18 +910,21 @@ function replaceCard(p){
   const old = cardFor(p.id); if(!old) return;
   const tmp = document.createElement('div');
   tmp.innerHTML = personCardHtml(p).trim();
+  if(old.classList.contains('gone')) tmp.firstElementChild.classList.add('gone');
   old.replaceWith(tmp.firstElementChild);
 }
 function setPhoto(p, data){
-  PHOTOS[normKey(p.nome)] = data;
-  PHOTO_DIRTY = true;
+  PHOTOS[p.id] = data;
+  PHOTO_CHANGES[p.id] = data;
   replaceCard(p);
   updatePhotoBar();
 }
 function updatePhotoBar(){
   const n = C.persone.filter(p => photoOf(p)).length;
+  const m = Object.keys(PHOTO_CHANGES).length;
   $('photoCount').textContent = `${n} di ${C.persone.length} con foto`;
-  $('photoSave').innerHTML = `${icon('download')} Scarica foto-team.js`;
+  $('photoSave').innerHTML = `${icon('upload')} Salva nel foglio${m ? ` (${m} modifich${m === 1 ? 'a' : 'e'})` : ''}`;
+  $('photoSave').disabled = !m;
 }
 function renderUnmatched(){
   const box = $('photoUnmatched');
@@ -883,16 +942,21 @@ function renderUnmatched(){
     renderUnmatched();
   });
 }
-function downloadPhotos(){
-  const keys = Object.keys(PHOTOS).sort();
-  const body = keys.map(k => `  ${JSON.stringify(k)}: ${JSON.stringify(PHOTOS[k])}`).join(',\n');
-  const txt = `/* Foto del team per il form Mappatura Competenze.\n   Generato da index.html?foto=1 il ${new Date().toLocaleString('it-IT')} (${keys.length} foto).\n   Va messo nella cartella del repository, accanto a index.html. */\nwindow.FOTO_TEAM = {\n${body}\n};\n`;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([txt], { type:'text/javascript' }));
-  a.download = 'foto-team.js';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  PHOTO_DIRTY = false;
+async function savePhotosToSheet(){
+  const fk = $('photoKey').value.trim();
+  const st = $('photoStatus');
+  if(!fk){ st.className = 'photo-status err'; st.textContent = 'Inserisci il codice foto (riga codice_foto del foglio Config).'; $('photoKey').focus(); return; }
+  const btn = $('photoSave'); btn.disabled = true; btn.textContent = 'Salvataggio…';
+  st.className = 'photo-status'; st.textContent = '';
+  try{
+    const res = await api.savePhotos(PHOTO_CHANGES, fk);
+    if(!res.ok) throw new Error(res.error || 'Errore del server');
+    PHOTO_CHANGES = {};
+    st.className = 'photo-status ok';
+    st.textContent = `Fatto: ${res.saved} foto salvate${res.removed ? `, ${res.removed} tolte` : ''}. Le vedranno tutti quelli che aprono il form con il link.`;
+  }catch(err){
+    st.className = 'photo-status err'; st.textContent = 'Salvataggio non riuscito: ' + err.message;
+  }finally{ updatePhotoBar(); }
 }
 
 /* ------------------ 2. QUESTIONARIO --------------------------------- */
@@ -1403,6 +1467,7 @@ function demoApi(){
       ...Object.fromEntries(competenze.map((c, i) => [c.colonna, String(i % 5)])) }
   ];
   const cur = '2026-Q4';
+  const fotos = {};
   const lastOf = (id) => rows.filter(r => r.id === id).pop();
   const wait = (x) => new Promise(r => setTimeout(() => r(x), 250));
   return {
@@ -1410,6 +1475,13 @@ function demoApi(){
       livelli:['1 Base','2 Discreto','3 Autonomo','4 Avanzato'], competenze, strumenti, progetti,
       persone: persone.map(p => ({ id:p.id, nome:p.nome, ruolo:(lastOf(p.id) || {}).ruolo || p.ruolo || '' })) }),
     last: (id) => { const r = lastOf(id); return wait(r ? { ok:true, found:true, row:r, gia_compilato_in_rilevazione:r.rilevazione === cur } : { ok:true, found:false }); },
+    photos: () => wait({ ok:true, fotos:{ ...fotos } }),
+    savePhotos: (changes, fk) => {
+      if(fk !== 'demo') return wait({ ok:false, error:'Codice foto non valido (in demo è "demo")' });
+      let saved = 0, removed = 0;
+      Object.entries(changes).forEach(([id, d]) => { if(d){ fotos[id] = d; saved++; } else if(fotos[id]){ delete fotos[id]; removed++; } });
+      return wait({ ok:true, saved, removed });
+    },
     submit: (body) => {
       let id = body.id;
       if(!id){ id = 'P' + String(persone.length + 1).padStart(3,'0'); persone.push({ id, nome:body.nome_nuovo }); }
